@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Islam Fatwa Bot - Dokumentation</title>
     <style>
-        /* Apple-Inspired Design System & Variables */
+        /* Apple-Inspired Design System & Variables with Blue/Orange Palette */
         :root {
             --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
             --bg-dark: #09090b;
@@ -13,10 +13,14 @@
             --card-border: rgba(255, 255, 255, 0.08);
             --text-primary: #f4f4f5;
             --text-secondary: #a1a1aa;
+            
+            /* Blue/Teal (Analogous Blue) & Orange/Amber (Analogous Orange) */
             --accent-blue: #0071e3;
-            --accent-green: #30d158;
+            --accent-teal: #64d2ff;
+            --accent-orange: #ff9f0a;
+            --accent-amber: #ff9500;
             --accent-red: #ff453a;
-            --accent-purple: #af52de;
+            
             --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -38,7 +42,7 @@
             position: relative;
         }
 
-        /* Siri/Apple Intelligence Background Glows */
+        /* Siri/Apple Intelligence Background Glows (Blue & Orange Blends) */
         .glow-bg {
             position: absolute;
             top: 0;
@@ -54,7 +58,7 @@
             position: absolute;
             border-radius: 50%;
             filter: blur(120px);
-            opacity: 0.25;
+            opacity: 0.22;
             animation: pulse-glow 10s infinite alternate;
         }
 
@@ -69,7 +73,7 @@
         .glow-2 {
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, var(--accent-purple) 0%, transparent 80%);
+            background: radial-gradient(circle, var(--accent-orange) 0%, transparent 80%);
             bottom: -20%;
             right: -10%;
             animation-delay: -2s;
@@ -78,10 +82,10 @@
         .glow-3 {
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, var(--accent-green) 0%, transparent 80%);
+            background: radial-gradient(circle, var(--accent-teal) 0%, transparent 80%);
             top: 40%;
             right: 20%;
-            opacity: 0.15;
+            opacity: 0.12;
             animation-delay: -4s;
         }
 
@@ -125,14 +129,14 @@
 
         .brand-icon {
             font-size: 24px;
-            background: linear-gradient(135deg, #0071e3 0%, #af52de 100%);
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-orange) 100%);
             width: 40px;
             height: 40px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
         }
 
         .brand-title {
@@ -208,6 +212,7 @@
         .nav-item.active {
             background: rgba(255, 255, 255, 0.08);
             color: var(--text-primary);
+            border-left: 3px solid var(--accent-orange);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
@@ -260,7 +265,7 @@
             letter-spacing: -0.5px;
             margin-bottom: 16px;
             color: var(--text-bright);
-            background: linear-gradient(180deg, #ffffff 50%, #a1a1aa 100%);
+            background: linear-gradient(180deg, #ffffff 50%, var(--text-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -272,6 +277,8 @@
             margin-top: 32px;
             margin-bottom: 14px;
             color: var(--text-primary);
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
         }
 
         p {
@@ -313,7 +320,7 @@
         code {
             font-family: "SF Mono", "Consolas", monospace;
             background: rgba(255, 255, 255, 0.06);
-            color: #f43f5e;
+            color: var(--accent-orange);
             padding: 3px 6px;
             border-radius: 6px;
             font-size: 13px;
@@ -340,15 +347,16 @@
         }
 
         .copy-btn.copied {
-            background: var(--accent-green);
+            background: var(--accent-orange);
             color: #000000;
+            border-color: var(--accent-orange);
             font-weight: 600;
         }
 
         /* Infoboxen */
         .info-card {
-            background: rgba(0, 113, 227, 0.06);
-            border: 1px solid rgba(0, 113, 227, 0.15);
+            background: rgba(255, 149, 0, 0.05);
+            border: 1px solid rgba(255, 149, 0, 0.15);
             border-radius: 18px;
             padding: 20px;
             margin: 25px 0;
@@ -358,7 +366,7 @@
 
         .info-card-icon {
             font-size: 20px;
-            color: var(--accent-blue);
+            color: var(--accent-amber);
         }
 
         .info-card-content h4 {
@@ -397,7 +405,7 @@
         .command-name {
             font-size: 15px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--accent-teal);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -432,7 +440,7 @@
 </head>
 <body>
 
-    <!-- Hintergrund Siri-Glows -->
+    <!-- Hintergrund Siri-Glows (Blau & Orange Palette) -->
     <div class="glow-bg">
         <div class="glow-circle glow-1"></div>
         <div class="glow-circle glow-2"></div>
@@ -586,7 +594,7 @@ python main.py</code></pre>
                     <pre><button class="copy-btn" onclick="copyCode(this)">Kopieren</button><code>BOT_TOKEN=DeinDiscordBotTokenOhneAnfuehrungszeichen</code></pre>
 
                     <h2>⚠️ Slash-Befehle werden nicht angezeigt</h2>
-                    <p>Wenn die Slash-Befehle (wie <code>/suche</code>) nicht in deinem Chat erscheinen, starte dein Discord-Programm neu. Der Bot registriert die Befehle global bei Discord – das kann nach dem ersten Start manchmal bis zu 5 Minuten dauern.</p>
+                    <p>Wenn die Slash-Befehle (wie <code>/suche</code>) nicht in deinem Chat erscheinen, starte dein Discord-Programm neu. Der Bot registriert die Befehle global bei Discord – das kann nach dem ersten Start manchmal bis zu 5 Minuten douern.</p>
 
                     <h2>⚠️ Bot schreibt keine Nachrichten</h2>
                     <p>Vergewissere dich, dass der Bot in den Kanaleinstellungen die Berechtigung besitzt, <strong>Nachrichten zu senden</strong> und <strong>Einbettungen (Links) hinzuzufügen</strong>.</p>
