@@ -1,0 +1,10 @@
+{
+    "embed_color": "0x0a58ca",
+    "search_limit": 5,
+    "bookmark_button_style": "primary",
+    "daily_fatwa_enabled": true,
+    "daily_fatwa_mode": "latest",
+    "daily_channel_id": 1510408882835427499,
+    "show_thumbnails": true,
+    "footer_text": "Quelle: islamfatwa.net • Fatwa-Datenbank nach Quran & Sunnah • Lesezeichen 🔖"
+}
