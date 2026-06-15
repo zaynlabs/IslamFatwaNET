@@ -4,11 +4,11 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Import settings manager and persistent view
+# Hier laden wir den Einstellungs-Manager und das Lesezeichen-Menü
 from utils.settings_manager import SettingsManager
 from views.reference_view import BookmarkView
 
-# Configure Logging
+# Logging einrichten (für Fehlersuche und Statusmeldungen in der Konsole)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -18,12 +18,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("IslamFatwa.main")
 
-# Load environment variables
+# Umgebungsvariablen aus der .env-Datei laden
 load_dotenv()
 
 class IslamFatwaBot(commands.Bot):
     def __init__(self) -> None:
-        # Set up intents
+        # Standard-Berechtigungen (Intents) für den Bot festlegen
         intents = discord.Intents.default()
         intents.guilds = True
         intents.messages = True
@@ -33,40 +33,40 @@ class IslamFatwaBot(commands.Bot):
         super().__init__(
             command_prefix="!",
             intents=intents,
-            help_command=None  # Disable default help since this is a slash command bot
+            help_command=None  # Standard-Hilfebefehl deaktivieren, da wir Slash-Commands nutzen
         )
         
-        # Load settings
+        # Einstellungen laden
         self.settings = SettingsManager()
 
     async def setup_hook(self) -> None:
-        # Load cogs/extensions
-        logger.info("Loading extensions...")
+        # Bot-Erweiterungen (Cogs) laden
+        logger.info("Lade die Bot-Erweiterungen (Cogs)...")
         await self.load_extension("cogs.reference_cog")
         await self.load_extension("cogs.settings_cog")
 
-        # Register persistent views
-        logger.info("Registering persistent views...")
+        # Das Lesezeichen-Menü registrieren, damit es auch nach einem Neustart aktiv bleibt
+        logger.info("Registriere das Lesezeichen-Menü...")
         self.add_view(BookmarkView(self.settings.get("bookmark_button_style")))
 
-        # Sync slash commands globally
-        logger.info("Syncing slash commands globally...")
+        # Slash-Commands global mit Discord synchronisieren
+        logger.info("Synchronisiere Slash-Commands mit Discord...")
         try:
             synced = await self.tree.sync()
-            logger.info(f"Successfully synced {len(synced)} command(s) globally.")
+            logger.info(f"Cool, habe {len(synced)} Befehl(e) global synchronisiert!")
         except Exception as e:
-            logger.error(f"Failed to sync slash commands: {e}", exc_info=True)
+            logger.error(f"Mist, die Synchronisierung der Slash-Commands ist schiefgelaufen: {e}", exc_info=True)
 
     async def on_ready(self) -> None:
-        logger.info(f"Bot logged in as {self.user} (ID: {self.user.id})")
-        logger.info("------ Bot is ready ------")
+        logger.info(f"Eingeloggt als {self.user} (ID: {self.user.id})")
+        logger.info("------ Der Bot ist startklar! ------")
 
 
 def main() -> None:
     token = os.getenv("BOT_TOKEN")
     if not token or token == "YOUR_DISCORD_BOT_TOKEN":
-        logger.error("BOT_TOKEN is not configured in the environment or .env file.")
-        print("\n[!] Error: Please configure your BOT_TOKEN inside the .env file in the root directory.\n")
+        logger.error("BOT_TOKEN wurde in der .env-Datei nicht gefunden.")
+        print("\n[!] Fehler: Bitte trage deinen BOT_TOKEN in die .env-Datei im Hauptverzeichnis ein.\n")
         return
 
     bot = IslamFatwaBot()
@@ -74,9 +74,9 @@ def main() -> None:
     try:
         bot.run(token)
     except discord.LoginFailure:
-        logger.critical("Login failed: Invalid BOT_TOKEN provided.")
+        logger.critical("Login fehlgeschlagen: Der angegebene BOT_TOKEN ist ungültig.")
     except Exception as e:
-        logger.critical(f"Fatal error during bot execution: {e}", exc_info=True)
+        logger.critical(f"Kritischer Fehler beim Ausführen des Bots: {e}", exc_info=True)
 
 
 if __name__ == "__main__":

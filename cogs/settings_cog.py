@@ -13,8 +13,8 @@ class SettingsCog(commands.Cog):
     @app_commands.command(name="settings", description="Öffnet das Einstellungs-Panel für den Islam Fatwa Bot")
     @app_commands.default_permissions(administrator=True)
     async def settings(self, interaction: discord.Interaction) -> None:
-        """Opens the configuration dashboard panel for the bot (Admin only)."""
-        logger.info(f"User {interaction.user} (ID: {interaction.user.id}) opened settings panel.")
+        """Öffnet das Einstellungs-Menü für den Bot (nur für Admins sichtbar)."""
+        logger.info(f"Der User {interaction.user} (ID: {interaction.user.id}) hat das Einstellungs-Panel geöffnet.")
         view = SettingsDashboardView(self.bot)
         embed = view.build_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)

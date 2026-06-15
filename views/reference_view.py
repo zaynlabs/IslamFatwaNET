@@ -5,12 +5,12 @@ logger = logging.getLogger("IslamFatwa.views")
 
 class BookmarkView(discord.ui.View):
     """
-    A persistent view that contains a button to allow users to bookmark
-    embed messages to their DMs with advanced human-friendly feedback.
+    Ein Lesezeichen-Menü, das aktiv bleibt (persistent) und es Usern ermöglicht,
+    Beiträge per Button-Klick in ihren privaten Nachrichten (DMs) abzuspeichern.
     """
     def __init__(self, style_str: str = "success"):
         super().__init__(timeout=None)
-        # Apply button style dynamically from settings
+        # Button-Farbe dynamisch aus den Einstellungen laden
         style_map = {
             "success": discord.ButtonStyle.success,
             "primary": discord.ButtonStyle.primary,
@@ -23,7 +23,7 @@ class BookmarkView(discord.ui.View):
 
     @discord.ui.button(
         label="Als Lesezeichen speichern",
-        style=discord.ButtonStyle.success,  # Success style fits save action
+        style=discord.ButtonStyle.success,  # Passt farblich gut zum Speichern
         emoji="🔖",
         custom_id="bookmark_fatwa_button"
     )
@@ -31,22 +31,22 @@ class BookmarkView(discord.ui.View):
         message = interaction.message
         if not message or not message.embeds:
             await interaction.response.send_message(
-                "❌ **Huch, das hat nicht geklappt!**\nDiese Nachricht enthält leider kein Fatwa, das gespeichert werden kann.",
+                "❌ **Huch, das hat nicht geklappt!**\nIn dieser Nachricht steckt leider kein Fatwa, das ich speichern könnte.",
                 ephemeral=True
             )
             return
 
         user = interaction.user
         
-        # Defer response to show loading state
+        # Lade-Status anzeigen
         await interaction.response.defer(ephemeral=True)
 
         try:
-            # Clone embeds to send to DMs
+            # Embeds für die DMs duplizieren
             embeds_to_send = []
             for original_embed in message.embeds:
                 cloned_embed = discord.Embed.from_dict(original_embed.to_dict())
-                # Highlight in DM that it is a saved bookmark with branding
+                # In den DMs kennzeichnen, dass es sich um ein gespeichertes Lesezeichen handelt
                 cloned_embed.set_author(
                     name="Islam Fatwa • Gespeichertes Lesezeichen",
                     url="https://islamfatwa.net/",
@@ -54,7 +54,7 @@ class BookmarkView(discord.ui.View):
                 )
                 embeds_to_send.append(cloned_embed)
 
-            # Send the embeds to user's DMs with a warm, friendly text
+            # Die Embeds mit einer netten Nachricht an die DMs des Users senden
             dm_channel = await user.create_dm()
             await dm_channel.send(
                 content=(
@@ -67,24 +67,24 @@ class BookmarkView(discord.ui.View):
             
             await interaction.followup.send(
                 "### ✅ Lesezeichen gespeichert\n"
-                "Ich habe dir das Fatwa soeben als Direktnachricht (DM) zugestellt. Bitte schaue in deinen Posteingang! 📩",
+                "Ich hab dir das Fatwa als Direktnachricht (DM) geschickt. Schau mal in deinen Posteingang! 📩",
                 ephemeral=True
             )
         except discord.Forbidden:
-            # Step-by-step guide in German on how to fix closed DMs
+            # Schritt-für-Schritt-Anleitung, falls DMs deaktiviert sind
             await interaction.followup.send(
                 "### ⚠️ Nachricht nicht zustellbar\n"
-                "Deine Direktnachrichten (DMs) für diesen Server sind derzeit blockiert. Bitte folge diesen Schritten, um DMs zu erlauben:\n\n"
-                "1️⃣ **Rechtsklick** auf das Server-Icon (auf dem Smartphone: gedrückt halten).\n"
-                "2️⃣ Wähle ⚙️ **Privatsphäre-Einstellungen**.\n"
+                "Deine Direktnachrichten (DMs) für diesen Server sind leider blockiert. So kannst du sie erlauben:\n\n"
+                "1️⃣ **Rechtsklick** auf das Server-Icon (auf dem Handy: gedrückt halten).\n"
+                "2️⃣ Geh auf ⚙️ **Privatsphäre-Einstellungen**.\n"
                 "3️⃣ Aktiviere den Schalter bei 💬 **Direktnachrichten von Servermitgliedern erlauben**.\n\n"
-                "*Klicke danach einfach erneut auf den Button, um das Lesezeichen zu speichern! ✨*",
+                "*Danach einfach nochmal auf den Button klicken, um das Lesezeichen zu speichern! ✨*",
                 ephemeral=True
             )
         except Exception as e:
-            logger.error(f"Error sending DM bookmark to user {user.id}: {e}", exc_info=True)
+            logger.error(f"Fehler beim Senden des DM-Lesezeichens an User {user.id}: {e}", exc_info=True)
             await interaction.followup.send(
                 "### ❌ Fehler beim Speichern\n"
-                "Ich konnte dir das Lesezeichen leider nicht per Direktnachricht senden. Bitte versuche es in ein paar Minuten erneut.",
+                "Ich konnte dir das Lesezeichen leider nicht per Direktnachricht senden. Bitte versuch es in ein paar Minuten noch einmal.",
                 ephemeral=True
             )

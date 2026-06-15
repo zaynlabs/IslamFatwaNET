@@ -16,8 +16,8 @@ class TestSettingsManager(unittest.TestCase):
         if os.path.exists(self.filename):
             os.remove(self.filename)
 
-    def test_default_creation(self):
-        # 1. Instantiating creates a settings.json file with default values
+    def test_standard_erstellung(self):
+        # 1. Das Instanziieren erstellt eine settings.json mit Standardwerten
         manager = SettingsManager(self.filename)
         self.assertTrue(os.path.exists(self.filename))
         self.assertEqual(manager.get("embed_color"), 0x0a58ca)
@@ -26,8 +26,8 @@ class TestSettingsManager(unittest.TestCase):
         self.assertTrue(manager.get("daily_fatwa_enabled"))
         self.assertTrue(manager.get("show_thumbnails"))
 
-    def test_set_and_save(self):
-        # 2. Setting values and saving persists them to file
+    def test_speichern_und_laden(self):
+        # 2. Werte setzen und speichern sichert sie in der Datei
         manager = SettingsManager(self.filename)
         manager.set("embed_color", 0x11806a)
         manager.set("search_limit", 5)
@@ -36,7 +36,7 @@ class TestSettingsManager(unittest.TestCase):
         manager.set("show_thumbnails", False)
         manager.save()
 
-        # Load in another manager instance to verify disk persistence
+        # Einstellungen in einer neuen Manager-Instanz laden, um Festplatten-Speicherung zu prüfen
         manager2 = SettingsManager(self.filename)
         self.assertEqual(manager2.get("embed_color"), 0x11806a)
         self.assertEqual(manager2.get("search_limit"), 5)
@@ -44,8 +44,8 @@ class TestSettingsManager(unittest.TestCase):
         self.assertFalse(manager2.get("daily_fatwa_enabled"))
         self.assertFalse(manager2.get("show_thumbnails"))
 
-    def test_hex_color_parsing(self):
-        # 3. Hex colors saved as string format (e.g. 0x0a58ca or #123456) parse back to integers
+    def test_hex_farbe_parsen(self):
+        # 3. Hex-Farben als String (z.B. 0x0a58ca oder #123456) werden als Integer geparst
         with open(self.filename, "w", encoding="utf-8") as f:
             f.write('{"embed_color": "0x11806a", "search_limit": 1}')
         
@@ -53,7 +53,7 @@ class TestSettingsManager(unittest.TestCase):
         self.assertEqual(manager.get("embed_color"), 0x11806a)
         self.assertEqual(manager.get("search_limit"), 1)
 
-        # Test fallback format with #
+        # Fallback-Format mit # testen
         with open(self.filename, "w", encoding="utf-8") as f:
             f.write('{"embed_color": "#ffc107", "search_limit": 2}')
         

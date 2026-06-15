@@ -15,38 +15,38 @@ def safe_print(msg: str):
         print(msg.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8"))
 
 async def main():
-    safe_print("=== Starting Sitemap Search Engine Tests ===")
+    safe_print("=== Starte Sitemap Suchmaschinen-Tests ===")
     
     from utils.settings_manager import SettingsManager
     mock_bot = MagicMock()
     mock_bot.wait_until_ready = MagicMock(return_value=asyncio.sleep(0))
     mock_bot.settings = SettingsManager()
     
-    # Instantiate cog
+    # Cog instanziieren
     cog = ReferenceCog(mock_bot)
     
-    # Test 1: Load sitemap.xml
-    safe_print("\nTest 1: Loading sitemap.xml...")
+    # Test 1: sitemap.xml laden
+    safe_print("\nTest 1: Lade sitemap.xml...")
     await cog.load_sitemap()
-    safe_print(f"-> Success! Cached {len(cog.sitemap_urls)} URLs.")
+    safe_print(f"-> Erfolg! {len(cog.sitemap_urls)} URLs im Cache.")
     
-    # Test 2: Search for "wudu"
-    safe_print("\nTest 2: Searching sitemap URLs for 'wudu'...")
+    # Test 2: Nach "wudu" suchen
+    safe_print("\nTest 2: Sitemap-URLs nach 'wudu' durchsuchen...")
     wudu_matches = cog.search_sitemap_urls("wudu")
-    safe_print(f"-> Found {len(wudu_matches)} matching article URLs.")
+    safe_print(f"-> {len(wudu_matches)} passende Artikel-URLs gefunden.")
     for i, url in enumerate(wudu_matches[:3]):
         safe_print(f"   [{i}] {url}")
         
-    # Test 3: Search for "ghusl"
-    safe_print("\nTest 3: Searching sitemap URLs for 'ghusl'...")
+    # Test 3: Nach "ghusl" suchen
+    safe_print("\nTest 3: Sitemap-URLs nach 'ghusl' durchsuchen...")
     ghusl_matches = cog.search_sitemap_urls("ghusl")
-    safe_print(f"-> Found {len(ghusl_matches)} matching article URLs.")
+    safe_print(f"-> {len(ghusl_matches)} passende Artikel-URLs gefunden.")
     for i, url in enumerate(ghusl_matches[:3]):
         safe_print(f"   [{i}] {url}")
 
-    # Test 4: Concurrently fetch metadata for top 3 "wudu" results
+    # Test 4: Details der Top 3 "wudu"-Treffer gleichzeitig abrufen
     if wudu_matches:
-        safe_print("\nTest 4: Fetching detail metadata concurrently for top 3 'wudu' matches...")
+        safe_print("\nTest 4: Details der Top 3 'wudu'-Treffer gleichzeitig abrufen...")
         try:
             tasks_list = [cog.scrape_article_detail(url) for url in wudu_matches[:3]]
             parsed_results = await asyncio.gather(*tasks_list, return_exceptions=True)
@@ -54,71 +54,71 @@ async def main():
             successful = []
             for item in parsed_results:
                 if isinstance(item, Exception):
-                    safe_print(f"   Scraping failed: {item}")
+                    safe_print(f"   Scraping fehlgeschlagen: {item}")
                 else:
                     successful.append(item)
             
-            safe_print(f"-> Success! Concurrently scraped {len(successful)} articles:")
+            safe_print(f"-> Erfolg! {len(successful)} Artikel gleichzeitig geladen:")
             for i, res in enumerate(successful, start=1):
-                safe_print(f"   {i}. Title: {res['title']}")
-                safe_print(f"      Scholar: {res['scholar']} | Category: {res['category']} | Date: {res['date']}")
+                safe_print(f"   {i}. Titel: {res['title']}")
+                safe_print(f"      Gelehrter: {res['scholar']} | Kategorie: {res['category']} | Datum: {res['date']}")
                 safe_print(f"      URL: {res['url']}")
         except Exception as e:
-            safe_print(f"-> Failed: {e}")
+            safe_print(f"-> Fehler: {e}")
     else:
-        safe_print("\nTest 4: Skipped (no matches found for 'wudu').")
+        safe_print("\nTest 4: Übersprungen (keine Treffer für 'wudu' gefunden).")
 
-    # Test 5: execute_filtered_search tests
-    safe_print("\nTest 5: Running execute_filtered_search tests...")
+    # Test 5: execute_filtered_search testen
+    safe_print("\nTest 5: Führe execute_filtered_search-Tests aus...")
     
-    # Case A: Keyword "wudu" + Category "gottesdienste-ibadah"
-    safe_print("\n   [Case A] Keyword='wudu', Category='gottesdienste-ibadah'...")
+    # Fall A: Suchwort "wudu" + Kategorie "gottesdienste-ibadah"
+    safe_print("\n   [Fall A] Suchwort='wudu', Kategorie='gottesdienste-ibadah'...")
     try:
         state_a = SearchState(query="wudu", category="gottesdienste-ibadah")
         results_a = await cog.execute_filtered_search(state_a)
-        safe_print(f"   -> Found {len(results_a)} results:")
+        safe_print(f"   -> {len(results_a)} Ergebnisse gefunden:")
         for idx, res in enumerate(results_a, start=1):
-            safe_print(f"      {idx}. {res['title']} | Scholar: {res['scholar']} | Cat: {res['category']}")
+            safe_print(f"      {idx}. {res['title']} | Gelehrter: {res['scholar']} | Kategorie: {res['category']}")
     except Exception as e:
-        safe_print(f"   -> Failed: {e}")
+        safe_print(f"   -> Fehler: {e}")
 
-    # Case B: Keyword "gebet" + Scholar "Ibn Baz"
-    safe_print("\n   [Case B] Keyword='gebet', Scholar='Ibn Baz'...")
+    # Fall B: Suchwort "gebet" + Gelehrter "Ibn Baz"
+    safe_print("\n   [Fall B] Suchwort='gebet', Gelehrter='Ibn Baz'...")
     try:
         state_b = SearchState(query="gebet", scholar="Ibn Baz")
         results_b = await cog.execute_filtered_search(state_b)
-        safe_print(f"   -> Found {len(results_b)} results:")
+        safe_print(f"   -> {len(results_b)} Ergebnisse gefunden:")
         for idx, res in enumerate(results_b, start=1):
-            safe_print(f"      {idx}. {res['title']} | Scholar: {res['scholar']} | Cat: {res['category']}")
+            safe_print(f"      {idx}. {res['title']} | Gelehrter: {res['scholar']} | Kategorie: {res['category']}")
     except Exception as e:
-        safe_print(f"   -> Failed: {e}")
+        safe_print(f"   -> Fehler: {e}")
 
-    # Test 6: Recent and Random Fatwa functions
-    safe_print("\nTest 6: Testing recent and random fatwa retrieval...")
+    # Test 6: Abruf des neuesten und eines zufälligen Fatwas testen
+    safe_print("\nTest 6: Teste Abruf des neuesten und eines zufälligen Fatwas...")
     
-    # Case A: Latest Fatwa
-    safe_print("   [Case A] Fetching latest fatwa...")
+    # Fall A: Neuestes Fatwa
+    safe_print("   [Fall A] Lade neuestes Fatwa...")
     try:
         latest = await cog._get_latest_fatwa()
-        safe_print(f"   -> Success! Title: {latest['title']}")
-        safe_print(f"      Scholar: {latest['scholar']} | Category: {latest['category']} | Date: {latest['date']}")
+        safe_print(f"   -> Erfolg! Titel: {latest['title']}")
+        safe_print(f"      Gelehrter: {latest['scholar']} | Kategorie: {latest['category']} | Datum: {latest['date']}")
         safe_print(f"      URL: {latest['url']}")
     except Exception as e:
-        safe_print(f"   -> Failed latest fatwa: {e}")
+        safe_print(f"   -> Fehler beim neuesten Fatwa: {e}")
         
-    # Case B: Random Fatwa
-    safe_print("\n   [Case B] Fetching random fatwa...")
+    # Fall B: Zufälliges Fatwa
+    safe_print("\n   [Fall B] Lade zufälliges Fatwa...")
     try:
         random_fatwa = await cog._get_random_fatwa()
-        safe_print(f"   -> Success! Title: {random_fatwa['title']}")
-        safe_print(f"      Scholar: {random_fatwa['scholar']} | Category: {random_fatwa['category']} | Date: {random_fatwa['date']}")
+        safe_print(f"   -> Erfolg! Titel: {random_fatwa['title']}")
+        safe_print(f"      Gelehrter: {random_fatwa['scholar']} | Kategorie: {random_fatwa['category']} | Datum: {random_fatwa['date']}")
         safe_print(f"      URL: {random_fatwa['url']}")
     except Exception as e:
-        safe_print(f"   -> Failed random fatwa: {e}")
+        safe_print(f"   -> Fehler beim zufälligen Fatwa: {e}")
 
-    # Cancel loop
+    # Hintergrundschleife beenden
     cog.daily_fatwa_loop.cancel()
-    safe_print("\n=== Sitemap Search Engine Tests Completed ===")
+    safe_print("\n=== Sitemap Suchmaschinen-Tests abgeschlossen ===")
 
 if __name__ == "__main__":
     asyncio.run(main())

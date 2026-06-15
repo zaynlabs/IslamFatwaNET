@@ -5,6 +5,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger("IslamFatwa.utils.settings_manager")
 
+# Standard-Einstellungen, falls keine settings.json existiert
 DEFAULT_SETTINGS = {
     "embed_color": 0x0a58ca,
     "search_limit": 3,
@@ -23,9 +24,9 @@ class SettingsManager:
         self.load()
 
     def load(self) -> None:
-        """Loads settings from settings.json or initializes them with defaults if file doesn't exist."""
+        """Lädt die Einstellungen aus settings.json oder erstellt sie neu mit den Standardwerten."""
         if not os.path.exists(self.filepath):
-            logger.info(f"Settings file {self.filepath} not found. Creating default settings.")
+            logger.info(f"Die Einstellungsdatei {self.filepath} wurde nicht gefunden. Erstelle Standard-Einstellungen.")
             self.settings = DEFAULT_SETTINGS.copy()
             self.save()
             return
@@ -34,11 +35,12 @@ class SettingsManager:
             with open(self.filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             
-            # Merge with defaults to ensure all keys exist
+            # Mit Standardwerten zusammenführen, um sicherzustellen, dass alle Keys vorhanden sind
             self.settings = DEFAULT_SETTINGS.copy()
             for key, val in data.items():
                 if key == "embed_color" and isinstance(val, str):
                     try:
+                        # Farbwert (Hex) sauber in Integer umwandeln
                         if val.startswith("0x") or val.startswith("0X"):
                             self.settings[key] = int(val, 16)
                         elif val.startswith("#"):
@@ -46,34 +48,33 @@ class SettingsManager:
                         else:
                             self.settings[key] = int(val, 16)
                     except ValueError:
-                        logger.warning(f"Invalid hex color '{val}' in settings. Reverting to default.")
+                        logger.warning(f"Ungültiger Hex-Farbcode '{val}' in den Einstellungen. Setze auf Standard zurück.")
                         self.settings[key] = DEFAULT_SETTINGS["embed_color"]
                 else:
                     self.settings[key] = val
-            logger.info("Settings loaded successfully.")
+            logger.info("Einstellungen wurden erfolgreich geladen.")
         except Exception as e:
-            logger.error(f"Failed to load settings from {self.filepath}: {e}", exc_info=True)
+            logger.error(f"Fehler beim Laden der Einstellungen aus {self.filepath}: {e}", exc_info=True)
             self.settings = DEFAULT_SETTINGS.copy()
 
     def save(self) -> None:
-        """Saves current settings to settings.json in a formatted JSON structure."""
+        """Speichert die aktuellen Einstellungen in der settings.json."""
         try:
-            # We want to format the hex color nicely in the JSON file for readability
+            # Wir möchten die Farbe im JSON als lesbaren Hex-String speichern (z.B. "0x0a58ca")
             save_data = self.settings.copy()
-            # Convert color back to hex string format for JSON
             if isinstance(save_data["embed_color"], int):
                 save_data["embed_color"] = f"0x{save_data['embed_color']:06x}"
             
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump(save_data, f, indent=4, ensure_ascii=False)
-            logger.info("Settings saved successfully.")
+            logger.info("Einstellungen wurden erfolgreich gespeichert.")
         except Exception as e:
-            logger.error(f"Failed to save settings to {self.filepath}: {e}", exc_info=True)
+            logger.error(f"Fehler beim Speichern der Einstellungen in {self.filepath}: {e}", exc_info=True)
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Returns the value for the given settings key."""
+        """Gibt den Wert für den angegebenen Einstellungsschlüssel zurück."""
         return self.settings.get(key, default)
 
     def set(self, key: str, value: Any) -> None:
-        """Sets a settings key to a value. Note: call save() to persist changes."""
+        """Setzt eine Einstellung auf einen neuen Wert. (Danach save() aufrufen, um es zu speichern!)"""
         self.settings[key] = value

@@ -28,7 +28,7 @@ class ColorSelect(discord.ui.Select):
                 default=(code == current_color)
             ))
         super().__init__(
-            placeholder="Theme-Farbe wählen...",
+            placeholder="Theme-Farbe aussuchen...",
             min_values=1,
             max_values=1,
             options=options,
@@ -52,7 +52,7 @@ class BookmarkStyleSelect(discord.ui.Select):
                 default=(key == current_style)
             ))
         super().__init__(
-            placeholder="Lesezeichen Button-Farbe...",
+            placeholder="Lesezeichen-Button Farbe...",
             min_values=1,
             max_values=1,
             options=options,
@@ -67,11 +67,15 @@ class BookmarkStyleSelect(discord.ui.Select):
 
 
 class SettingsDashboardView(discord.ui.View):
+    """
+    Das Dashboard für die Bot-Einstellungen.
+    Hier können Admins das Design und das automatische Posten anpassen.
+    """
     def __init__(self, bot):
         super().__init__(timeout=300)
         self.bot = bot
         
-        # Load active settings into temporary state
+        # Aktive Einstellungen in den temporären Zustand laden
         self.temp_embed_color = bot.settings.get("embed_color")
         self.temp_search_limit = bot.settings.get("search_limit")
         self.temp_bookmark_button_style = bot.settings.get("bookmark_button_style")
@@ -85,7 +89,7 @@ class SettingsDashboardView(discord.ui.View):
     def build_embed(self) -> discord.Embed:
         embed = discord.Embed(
             title="⚙️ Bot-Konfiguration & Einstellungen",
-            description="Passe das Design und Verhalten des **Islam Fatwa** Bots an. Alle Änderungen können unten konfiguriert und anschließend gespeichert werden.",
+            description="Hier kannst du den Islam Fatwa Bot nach deinen Wünschen einrichten. Unten einstellen und einfach speichern!",
             color=self.temp_embed_color
         )
         
@@ -97,7 +101,7 @@ class SettingsDashboardView(discord.ui.View):
         if self.temp_show_thumbnails:
             embed.set_thumbnail(url="https://islamfatwa.net/images/apple-touch-icon.png")
 
-        # Color label
+        # Bezeichnungen für Farben und Stile auslesen
         color_name = COLOR_OPTIONS.get(self.temp_embed_color, f"Benutzerdefiniert ({hex(self.temp_embed_color)})")
         style_name = STYLE_OPTIONS.get(self.temp_bookmark_button_style, self.temp_bookmark_button_style)
         
@@ -109,30 +113,30 @@ class SettingsDashboardView(discord.ui.View):
             name="🎨 Design & Ästhetik",
             value=(
                 f"• **Theme-Farbe:** {color_name}\n"
-                f"• **Lesezeichen Button:** {style_name}\n"
-                f"• **Bilder-Vorschau (Thumbnails):** {'✅ AN' if self.temp_show_thumbnails else '❌ AUS'}"
+                f"• **Lesezeichen-Button:** {style_name}\n"
+                f"• **Bilder-Vorschau:** {'✅ AN' if self.temp_show_thumbnails else '❌ AUS'}"
             ),
             inline=False
         )
 
         embed.add_field(
-            name="🔍 Sucheinstellungen",
-            value=f"• **Anzahl Suchergebnisse:** `{self.temp_search_limit}` (max. parallel geladen)",
+            name="🔍 Suche",
+            value=f"• **Anzahl Suchergebnisse:** `{self.temp_search_limit}` (gleichzeitig geladen)",
             inline=False
         )
 
         embed.add_field(
-            name="🕌 Täglicher Fatwa-Post (Automatisch)",
+            name="🕌 Täglicher Fatwa-Post",
             value=(
                 f"• **Status:** {'✅ Aktiviert' if self.temp_daily_fatwa_enabled else '❌ Deaktiviert'}\n"
-                f"• **Posting-Kanal:** {daily_channel_mention}\n"
+                f"• **Kanal:** {daily_channel_mention}\n"
                 f"• **Modus:** `{'Neueste' if self.temp_daily_fatwa_mode == 'latest' else 'Zufällig'}`"
             ),
             inline=False
         )
 
         embed.set_footer(
-            text="Tippe auf 'Speichern', um die Änderungen in settings.json zu übernehmen.",
+            text="Klick auf 'Speichern', um deine Einstellungen zu sichern.",
             icon_url="https://islamfatwa.net/images/favicon.png"
         )
         return embed
@@ -140,50 +144,50 @@ class SettingsDashboardView(discord.ui.View):
     def prepare_items(self):
         self.clear_items()
         
-        # Row 1: Dropdown Color
+        # Zeile 1: Dropdown Farbe
         self.add_item(ColorSelect(self.temp_embed_color))
         
-        # Row 2: Dropdown Bookmark Style
+        # Zeile 2: Dropdown Lesezeichen-Stil
         self.add_item(BookmarkStyleSelect(self.temp_bookmark_button_style))
         
-        # Row 3: Config buttons (Limits & Toggles)
-        # Search limit cycle button
+        # Zeile 3: Konfigurations-Knöpfe
+        # Suchlimit
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.primary,
-            label=f"Limit: {self.temp_search_limit}",
+            label=f"Suchlimit: {self.temp_search_limit}",
             emoji="🔢",
             custom_id="btn_set_limit",
             row=2
         ))
         
-        # Daily Fatwa status toggle
+        # Täglicher Post Status
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.success if self.temp_daily_fatwa_enabled else discord.ButtonStyle.danger,
-            label=f"Täglich: {'AN' if self.temp_daily_fatwa_enabled else 'AUS'}",
+            label=f"Täglicher Post: {'AN' if self.temp_daily_fatwa_enabled else 'AUS'}",
             emoji="📅",
             custom_id="btn_toggle_daily",
             row=2
         ))
         
-        # Daily Fatwa mode toggle
+        # Täglicher Post Modus
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.secondary,
-            label=f"Tägl. Modus: {'Neu' if self.temp_daily_fatwa_mode == 'latest' else 'Zufall'}",
+            label=f"Modus: {'Neu' if self.temp_daily_fatwa_mode == 'latest' else 'Zufall'}",
             emoji="🔄",
             custom_id="btn_toggle_daily_mode",
             row=2
         ))
 
-        # Show thumbnails toggle
+        # Bilder Vorschau an/aus
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.secondary,
-            label=f"Vorschau: {'AN' if self.temp_show_thumbnails else 'AUS'}",
+            label=f"Bilder: {'AN' if self.temp_show_thumbnails else 'AUS'}",
             emoji="🖼️",
             custom_id="btn_toggle_thumbs",
             row=3
         ))
 
-        # Channel set to current channel
+        # Kanal auf den aktuellen Kanal festlegen
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Kanal festlegen",
@@ -192,10 +196,10 @@ class SettingsDashboardView(discord.ui.View):
             row=3
         ))
 
-        # Row 4/5: Actions (Save & Reset)
+        # Zeile 4: Aktionen (Speichern & Zurücksetzen)
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.success,
-            label="Änderungen speichern",
+            label="Speichern",
             emoji="💾",
             custom_id="btn_save_settings",
             row=4
@@ -213,13 +217,12 @@ class SettingsDashboardView(discord.ui.View):
         embed = self.build_embed()
         await interaction.response.edit_message(embed=embed, view=self)
 
-    # Intercept all button interactions
+    # Alle Interaktionen verarbeiten
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        # Standard check: only let admins run operations, but slash command check handles this mostly
         custom_id = interaction.data.get("custom_id")
         
         if custom_id == "btn_set_limit":
-            # Cycle limit 1 -> 3 -> 5 -> 1
+            # Limit im Kreis schalten: 1 -> 3 -> 5 -> 1
             limits = [1, 3, 5]
             current_idx = limits.index(self.temp_search_limit) if self.temp_search_limit in limits else 1
             self.temp_search_limit = limits[(current_idx + 1) % len(limits)]
@@ -243,7 +246,7 @@ class SettingsDashboardView(discord.ui.View):
             
         elif custom_id == "btn_save_settings":
             await interaction.response.defer()
-            # Save state into bot settings
+            # Werte in den Einstellungs-Manager übertragen
             self.bot.settings.set("embed_color", self.temp_embed_color)
             self.bot.settings.set("search_limit", self.temp_search_limit)
             self.bot.settings.set("bookmark_button_style", self.temp_bookmark_button_style)
@@ -253,29 +256,24 @@ class SettingsDashboardView(discord.ui.View):
             self.bot.settings.set("show_thumbnails", self.temp_show_thumbnails)
             self.bot.settings.save()
             
-            # Recreate views and inform cog loops if necessary
-            # e.g., register the persistent BookmarkView with the new style
+            # Persistente Views mit neuem Button-Stil registrieren
             try:
-                # We need to recreate the persistent BookmarkView style.
-                # In discord.py, you can't easily remove a view with the same ID except by restarting or
-                # adding the view again, adding the view overrides the old callbacks
-                # Let's register it to be safe
                 from views.reference_view import BookmarkView
                 self.bot.add_view(BookmarkView(self.temp_bookmark_button_style))
             except Exception as e:
-                logger.error(f"Error updating persistent bookmark view dynamically: {e}")
+                logger.error(f"Fehler beim dynamischen Aktualisieren des persistenten Lesezeichen-Buttons: {e}")
 
             save_embed = discord.Embed(
                 title="✅ Einstellungen gespeichert!",
-                description="Deine Konfigurationsänderungen wurden erfolgreich in `settings.json` persistiert und auf alle Bot-Komponenten angewendet.",
+                description="Alles klar! Deine Einstellungen wurden in `settings.json` gespeichert und übernommen.",
                 color=self.temp_embed_color
             )
             await interaction.followup.send(embed=save_embed, ephemeral=True)
-            # Re-render main panel to show saved state
+            # Panel neu laden, um den gespeicherten Stand anzuzeigen
             await self.update_panel(interaction)
             
         elif custom_id == "btn_reset_settings":
-            # Discard temp changes and reload from file
+            # Änderungen verwerfen und aus der Datei neu laden
             self.bot.settings.load()
             self.temp_embed_color = self.bot.settings.get("embed_color")
             self.temp_search_limit = self.bot.settings.get("search_limit")

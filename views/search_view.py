@@ -7,25 +7,25 @@ logger = logging.getLogger("IslamFatwa.views.search")
 
 class SearchState:
     """
-    Holds the current search parameters for a user's search session.
+    Speichert die aktuellen Suchparameter für die Such-Session eines Users.
     """
     def __init__(self, query: str = "", category: str = None, scholar: str = None):
         self.query = query
-        self.category = category  # e.g. 'gottesdienste-ibadah' or None
-        self.scholar = scholar    # e.g. 'Ibn Baz' or None
+        self.category = category  # z.B. 'gottesdienste-ibadah' oder None
+        self.scholar = scholar    # z.B. 'Ibn Baz' oder None
 
 
 class SearchKeywordModal(discord.ui.Modal):
     """
-    Modal prompting the user to type or edit their search term.
+    Ein Eingabefenster (Modal), in dem der User sein Suchwort eingeben oder ändern kann.
     """
     def __init__(self, dashboard_view: "SearchDashboardView"):
         super().__init__(title="Suchbegriff eingeben")
         self.dashboard_view = dashboard_view
 
         self.keyword_input = discord.ui.TextInput(
-            label="Wonach möchtest du suchen?",
-            placeholder="z.B. Wudu, Ghusl, Fasten, Erbschaft...",
+            label="Was suchst du?",
+            placeholder="z. B. Wudu, Ghusl, Fasten, Erbschaft...",
             default=dashboard_view.state.query,
             required=True,
             min_length=1,
@@ -34,14 +34,14 @@ class SearchKeywordModal(discord.ui.Modal):
         self.add_item(self.keyword_input)
 
     async def on_submit(self, interaction: discord.Interaction):
-        # Update the query term and refresh dashboard results
+        # Suchbegriff aktualisieren und Dashboard neu laden
         self.dashboard_view.state.query = self.keyword_input.value.strip()
         await self.dashboard_view.update_dashboard(interaction)
 
 
 class CategorySelect(discord.ui.Select):
     """
-    Dropdown Select Menu for filtering by category.
+    Dropdown-Menü zum Filtern nach Kategorien.
     """
     def __init__(self, current_value: str = None):
         options = [
@@ -55,7 +55,7 @@ class CategorySelect(discord.ui.Select):
             discord.SelectOption(label="Kleidung & Körper", value="kleidung-schmuck", default=current_value == "kleidung-schmuck")
         ]
         super().__init__(
-            placeholder="Nach Kategorie filtern...",
+            placeholder="Filter nach einer Kategorie...",
             min_values=1,
             max_values=1,
             options=options,
@@ -71,7 +71,7 @@ class CategorySelect(discord.ui.Select):
 
 class ScholarSelect(discord.ui.Select):
     """
-    Dropdown Select Menu for filtering by scholar.
+    Dropdown-Menü zum Filtern nach Gelehrten.
     """
     def __init__(self, current_value: str = None):
         options = [
@@ -84,7 +84,7 @@ class ScholarSelect(discord.ui.Select):
             discord.SelectOption(label="Ständiges Komitee (Lajna)", value="Lajna", default=current_value == "Lajna")
         ]
         super().__init__(
-            placeholder="Nach Gelehrten filtern...",
+            placeholder="Filter nach einem Gelehrten...",
             min_values=1,
             max_values=1,
             options=options,
@@ -100,8 +100,8 @@ class ScholarSelect(discord.ui.Select):
 
 class SearchItemButton(discord.ui.Button):
     """
-    Button representing a single search result selection.
-    Loads pre-scraped fatwa detail instantly in Discord.
+    Ein Button, der für einen einzelnen Suchtreffer steht.
+    Lädt das Fatwa-Detail direkt im Chat.
     """
     def __init__(self, index: int, label: str, emoji: str, custom_id: str):
         super().__init__(
@@ -120,11 +120,11 @@ class SearchItemButton(discord.ui.Button):
             return
 
         try:
-            # Retrieve search item detail dict
+            # Fatwa-Details auslesen
             fatwa = view.current_results[self.index]
             detail_embed = view.cog.create_fatwa_embed(fatwa)
             
-            # Switch to FatwaDetailView
+            # Auf die Detail-Ansicht umschalten
             detail_view = FatwaDetailView(view.cog, view, detail_embed)
             await interaction.followup.edit_message(
                 message_id=interaction.message.id,
@@ -132,13 +132,13 @@ class SearchItemButton(discord.ui.Button):
                 view=detail_view
             )
         except Exception as e:
-            logger.error(f"Error displaying search result detail: {e}", exc_info=True)
+            logger.error(f"Fehler beim Anzeigen der Fatwa-Details: {e}", exc_info=True)
             error_embed = discord.Embed(
                 color=0xe74c3c
             )
             error_embed.description = (
-                "### ❌ Fehler beim Laden\n"
-                "Das ausgewählte Fatwa konnte nicht geladen werden.\n\n"
+                "### ❌ Ladefehler\n"
+                "Ich konnte das ausgewählte Fatwa leider nicht laden.\n\n"
                 f"> ⚠️ **Details:** *{str(e)}*"
             )
             await interaction.followup.send(embed=error_embed, ephemeral=True)
@@ -146,12 +146,12 @@ class SearchItemButton(discord.ui.Button):
 
 class EditKeywordButton(discord.ui.Button):
     """
-    Button opening the modal to enter/edit search term.
+    Button, um das Eingabefenster für das Suchwort zu öffnen.
     """
     def __init__(self):
         super().__init__(
             style=discord.ButtonStyle.secondary,
-            label="Begriff ändern",
+            label="Suchwort ändern",
             emoji="📝",
             custom_id="search_edit_keyword_btn"
         )
@@ -164,7 +164,7 @@ class EditKeywordButton(discord.ui.Button):
 
 class ResetButton(discord.ui.Button):
     """
-    Button to clear all filters.
+    Button, um alle Filter und Suchwörter zurückzusetzen.
     """
     def __init__(self):
         super().__init__(
@@ -185,25 +185,25 @@ class ResetButton(discord.ui.Button):
 
 class SearchDashboardView(discord.ui.View):
     """
-    Main Search Dashboard View managing filters, buttons, and displaying search results.
+    Das Haupt-Suchmenü. Verwaltet die Filter, Knöpfe und Suchergebnisse.
     """
     def __init__(self, cog, state: SearchState):
-        super().__init__(timeout=300)  # Active for 5 minutes
+        super().__init__(timeout=300)  # Bleibt für 5 Minuten aktiv
         self.cog = cog
         self.state = state
         self.current_results: List[Dict[str, Any]] = []
         self.search_embed: discord.Embed = None
 
     async def update_dashboard(self, interaction: discord.Interaction):
-        """Runs the search filters and updates the Discord message."""
+        """Wendet die Filter an und aktualisiert die Discord-Nachricht."""
         if not interaction.response.is_done():
             await interaction.response.defer()
 
         try:
-            # Query filtered matches from reference cog
+            # Gefilterte Ergebnisse laden
             self.current_results = await self.cog.execute_filtered_search(self.state)
             
-            # Rebuild embed and components
+            # Embed und Knöpfe neu aufbauen
             self.search_embed = self.build_embed()
             self.prepare_items()
             
@@ -213,22 +213,22 @@ class SearchDashboardView(discord.ui.View):
                 view=self
             )
         except Exception as e:
-            logger.error(f"Error updating search dashboard: {e}", exc_info=True)
+            logger.error(f"Fehler beim Aktualisieren des Such-Dashboards: {e}", exc_info=True)
             error_embed = discord.Embed(
                 color=0xe74c3c
             )
             error_embed.description = (
                 "### ❌ Fehler bei der Suche\n"
-                "Bei der Filterung der Suchergebnisse ist ein Fehler aufgetreten.\n\n"
+                "Beim Filtern der Ergebnisse gab es ein Problem.\n\n"
                 f"> ⚠️ **Details:** *{str(e)}*"
             )
             await interaction.followup.send(embed=error_embed, ephemeral=True)
 
     def build_embed(self) -> discord.Embed:
-        """Constructs the Search Dashboard embed card showing status and result lists."""
+        """Erstellt das Embed für die Suche mit aktuellen Filtern und Treffern."""
         color = self.cog.bot.settings.get("embed_color")
         embed = discord.Embed(
-            title="🔍 Fatwa-Such-Panel",
+            title="🔍 Fatwa-Suche",
             color=color
         )
 
@@ -252,12 +252,12 @@ class SearchDashboardView(discord.ui.View):
         
         cat_label = cat_labels.get(self.state.category, "Alle Kategorien")
         scholar_label = self.state.scholar or "Alle Gelehrten"
-        query_label = f"**{self.state.query}**" if self.state.query else "*Keiner*"
+        query_label = f"**{self.state.query}**" if self.state.query else "*Keins*"
 
         desc_parts = [
-            "Hier kannst du gezielt nach Rechtsurteilen (Fatawa) auf **islamfatwa.net** filtern und suchen.",
+            "Hier kannst du nach Rechtsurteilen (Fatawa) auf **islamfatwa.net** suchen.",
             "",
-            "### ⚙️ Aktive Suchfilter",
+            "### ⚙️ Deine aktiven Filter",
             f"• 📝 **Suchbegriff:** {query_label}",
             f"• 📁 **Kategorie:** *{cat_label}*",
             f"• 👤 **Gelehrter:** *{scholar_label}*",
@@ -267,60 +267,60 @@ class SearchDashboardView(discord.ui.View):
         if not self.state.query and not self.state.category and not self.state.scholar:
             desc_parts.extend([
                 "### 💡 Erste Schritte",
-                "Wähle eine **Kategorie** oder einen **Gelehrten** aus den Dropdown-Menüs aus, oder klicke auf **Begriff ändern**, um einen Suchbegriff einzugeben."
+                "Wähle eine Kategorie oder einen Gelehrten aus den Dropdowns oder klick auf **Suchwort ändern**, um die Suche zu starten."
             ])
         elif not self.current_results:
             desc_parts.extend([
                 "### ⚠️ Keine Ergebnisse",
-                "Für die ausgewählten Suchfilter wurden leider keine passenden Rechtsurteile gefunden. Bitte passe deine Filter an oder versuche es mit einem anderen Begriff."
+                "Dazu habe ich leider nichts gefunden. Versuch's mal mit anderen Filtern oder einem anderen Begriff!"
             ])
         else:
             search_limit = self.cog.bot.settings.get("search_limit", 3)
-            desc_parts.append(f"### 📋 Gefundene Rechtsurteile (Top {search_limit})")
+            desc_parts.append(f"### 📋 Suchergebnisse (Top {search_limit})")
             emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
             for i, res in enumerate(self.current_results[:search_limit]):
                 emoji = emojis[i]
                 desc_parts.extend([
                     f"{emoji} **{res['title']}**",
                     f"> 👤 *{res['scholar']}* • 📁 *{res['category']}*",
-                    f"> 📅 *{res['date']}* • 🔗 [Online lesen]({res['url']})",
+                    f"> 📅 *{res['date']}* • 🔗 [Im Browser lesen]({res['url']})",
                     ""
                 ])
 
         embed.description = "\n".join(desc_parts)
         embed.set_footer(
-            text="Such-Panel • Wähle unten einen Beitrag aus • islamfatwa.net",
+            text="Such-Panel • Wähle unten einen Beitrag zum Lesen aus • islamfatwa.net",
             icon_url="https://islamfatwa.net/images/favicon.png"
         )
         return embed
 
     def prepare_items(self):
-        """Regenerates view component list based on search results state."""
+        """Baut die Knöpfe und Auswahllisten im Menü neu auf."""
         self.clear_items()
         
-        # Add filtering dropdown selects
+        # Dropdowns hinzufügen
         self.add_item(CategorySelect(self.state.category))
         self.add_item(ScholarSelect(self.state.scholar))
         
-        # Add selection buttons for matches
+        # Buttons für die Treffer hinzufügen
         emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
         search_limit = self.cog.bot.settings.get("search_limit", 3)
         for i in range(min(len(self.current_results), search_limit)):
             self.add_item(SearchItemButton(
                 index=i,
-                label=f"Beitrag {i+1} lesen",
+                label=f"Beitrag {i+1} öffnen",
                 emoji=emojis[i],
                 custom_id=f"search_read_btn_{i}"
             ))
 
-        # Add trigger action buttons
+        # Funktions-Knöpfe hinzufügen
         self.add_item(EditKeywordButton())
         self.add_item(ResetButton())
 
 
 class FatwaDetailView(discord.ui.View):
     """
-    Detailed fatwa view allowing bookmarks or returning back to the active search panel.
+    Detail-Ansicht für ein Fatwa. Ermöglicht das Speichern oder Zurückkehren zur Suche.
     """
     def __init__(self, cog, search_view: SearchDashboardView, detail_embed: discord.Embed):
         super().__init__(timeout=180)
@@ -328,7 +328,7 @@ class FatwaDetailView(discord.ui.View):
         self.search_view = search_view
         self.detail_embed = detail_embed
 
-        # Apply button style dynamically from settings
+        # Button-Farbe dynamisch aus den Einstellungen laden
         style_map = {
             "success": discord.ButtonStyle.success,
             "primary": discord.ButtonStyle.primary,
@@ -350,7 +350,7 @@ class FatwaDetailView(discord.ui.View):
         message = interaction.message
         if not message or not message.embeds:
             await interaction.response.send_message(
-                "❌ **Lesezeichen fehlgeschlagen!** Keine Fatwa-Embeds auf der Nachricht gefunden.",
+                "❌ **Lesezeichen fehlgeschlagen!** Ich konnte kein Fatwa-Embed in dieser Nachricht finden.",
                 ephemeral=True
             )
             return
@@ -381,35 +381,35 @@ class FatwaDetailView(discord.ui.View):
             
             await interaction.followup.send(
                 "### ✅ Lesezeichen gespeichert\n"
-                "Ich habe dir das Fatwa soeben als Direktnachricht (DM) zugestellt. Bitte schaue in deinen Posteingang! 📩",
+                "Ich hab dir das Fatwa als Direktnachricht (DM) geschickt. Schau mal in deinen Posteingang! 📩",
                 ephemeral=True
             )
         except discord.Forbidden:
             await interaction.followup.send(
                 "### ⚠️ Nachricht nicht zustellbar\n"
-                "Deine Direktnachrichten (DMs) für diesen Server sind derzeit blockiert. Bitte folge diesen Schritten, um DMs zu erlauben:\n\n"
-                "1️⃣ **Rechtsklick** auf das Server-Icon (auf dem Smartphone: gedrückt halten).\n"
-                "2️⃣ Wähle ⚙️ **Privatsphäre-Einstellungen**.\n"
+                "Deine Direktnachrichten (DMs) für diesen Server sind leider blockiert. So kannst du sie erlauben:\n\n"
+                "1️⃣ **Rechtsklick** auf das Server-Icon (auf dem Handy: gedrückt halten).\n"
+                "2️⃣ Geh auf ⚙️ **Privatsphäre-Einstellungen**.\n"
                 "3️⃣ Aktiviere den Schalter bei 💬 **Direktnachrichten von Servermitgliedern erlauben**.\n\n"
-                "*Klicke danach einfach erneut auf den Button, um das Lesezeichen zu speichern! ✨*",
+                "*Danach einfach nochmal auf den Button klicken, um das Lesezeichen zu speichern! ✨*",
                 ephemeral=True
             )
         except Exception as e:
-            logger.error(f"Error sending DM bookmark in detail view to user {user.id}: {e}", exc_info=True)
+            logger.error(f"Fehler beim Senden des DM-Lesezeichens aus der Detailansicht an User {user.id}: {e}", exc_info=True)
             await interaction.followup.send(
                 "### ❌ Fehler beim Speichern\n"
-                "Ich konnte dir das Lesezeichen leider nicht per Direktnachricht senden. Bitte versuche es in ein paar Minuten erneut.",
+                "Ich konnte dir das Lesezeichen leider nicht als DM schicken. Versuch es bitte gleich nochmal.",
                 ephemeral=True
             )
 
     @discord.ui.button(
-        label="Zurück zum Such-Panel",
+        label="Zurück zur Suche",
         style=discord.ButtonStyle.secondary,
         emoji="◀️",
         custom_id="back_to_search_dashboard_btn"
     )
     async def back_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Return to the search dashboard embed and restore dashboard buttons
+        # Zurück zum Such-Dashboard wechseln und Buttons wiederherstellen
         await interaction.response.defer()
         await interaction.followup.edit_message(
             message_id=interaction.message.id,

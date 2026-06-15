@@ -11,7 +11,7 @@ import logging
 import xml.etree.ElementTree as ET
 from typing import Optional, List, Dict, Any
 
-# Import the custom views
+# Eigene Views laden
 from views.reference_view import BookmarkView
 from views.search_view import SearchDashboardView, SearchState
 
@@ -24,9 +24,9 @@ HEADERS = {
 class ReferenceCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # Cached list of all URLs from sitemap.xml
+        # Cache für alle URLs aus der sitemap.xml
         self.sitemap_urls: List[str] = []
-        # Start the background loop
+        # Startet die Hintergrundschleife
         self.daily_fatwa_loop.start()
 
     def cog_unload(self):
@@ -34,19 +34,19 @@ class ReferenceCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        logger.info("ReferenceCog is ready and background task loop is active.")
+        logger.info("ReferenceCog ist bereit und die Hintergrundaufgabe läuft.")
 
-    # --- Sitemap Index Loading & Searching ---
+    # --- Laden und Durchsuchen des Sitemap-Index ---
 
     async def load_sitemap(self) -> None:
-        """Fetches and parses sitemap.xml to cache all URLs."""
+        """Lädt und parst die sitemap.xml, um alle URLs zwischenzuspeichern."""
         try:
-            logger.info("Fetching sitemap.xml from islamfatwa.net...")
+            logger.info("Lade die sitemap.xml von islamfatwa.net herunter...")
             xml_content = await self._fetch_html("https://islamfatwa.net/sitemap.xml")
             
-            # Use ElementTree to parse sitemap XML safely
+            # Nutze ElementTree für sicheres XML-Parsing der Sitemap
             root = ET.fromstring(xml_content.encode("utf-8"))
-            # Extract namespace if present (e.g. {http://www.sitemaps.org/schemas/sitemap/0.9})
+            # Namespace auslesen, falls vorhanden (z.B. {http://www.sitemaps.org/schemas/sitemap/0.9})
             namespace = root.tag.split("}")[0] + "}" if root.tag.startswith("{") else ""
             
             urls = []
@@ -55,15 +55,15 @@ class ReferenceCog(commands.Cog):
                     urls.append(url_node.text.strip())
             
             self.sitemap_urls = urls
-            logger.info(f"Sitemap parsed successfully. Cached {len(self.sitemap_urls)} URLs.")
+            logger.info(f"Sitemap erfolgreich eingelesen! {len(self.sitemap_urls)} URLs im Cache.")
         except Exception as e:
-            logger.error(f"Error loading sitemap.xml: {e}", exc_info=True)
+            logger.error(f"Fehler beim Laden der sitemap.xml: {e}", exc_info=True)
 
     def search_sitemap_urls(self, query: str) -> List[str]:
-        """Filters cached sitemap URLs based on query keywords, prioritizing article links and excluding categories."""
+        """Filtert die zwischengespeicherten URLs nach Suchbegriffen, bevorzugt Artikel-Links und schließt Kategorien aus."""
         def normalize(s: str) -> str:
             s = s.lower()
-            # Normalize German umlauts and clean symbols
+            # Deutsche Umlaute normalisieren und Sonderzeichen entfernen
             s = s.replace("ü", "ue").replace("ä", "ae").replace("ö", "oe").replace("ß", "ss")
             s = re.sub(r'[^a-z0-9\s-]', '', s)
             return s
@@ -79,12 +79,12 @@ class ReferenceCog(commands.Cog):
             if all(kw in norm_url for kw in keywords):
                 matches.append(url)
 
-        # Filter and prioritize actual article URLs (numeric IDs in final segment, not parent directories/categories)
+        # Eigentliche Artikel-URLs filtern und bevorzugen (Zahlen-IDs am Ende des Pfads, keine Kategorien)
         article_matches = []
         for m in matches:
             last_segment = m.rstrip("/").split("/")[-1]
             if re.match(r'^\d+-', last_segment):
-                # Filter out parent category pages by checking if this URL is a prefix of any other URL in the sitemap
+                # Überprüfen, ob diese URL ein Präfix einer anderen URL ist (um Kategorie-Seiten auszuschließen)
                 is_category = False
                 for other_u in self.sitemap_urls:
                     if other_u != m and other_u.startswith(m + "/"):
@@ -95,10 +95,10 @@ class ReferenceCog(commands.Cog):
 
         return article_matches if article_matches else matches
 
-    # --- Scraping Logic ---
+    # --- Scraping-Logik ---
 
     async def _fetch_html(self, url: str, allow_404: bool = False) -> str:
-        """Helper to fetch HTML content from a URL asynchronously using aiohttp."""
+        """Hilfsfunktion, um HTML-Inhalte einer URL asynchron per aiohttp zu laden."""
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url, headers=HEADERS, timeout=10) as response:
@@ -109,35 +109,35 @@ class ReferenceCog(commands.Cog):
                             request_info=response.request_info,
                             history=response.history,
                             status=response.status,
-                            message=f"HTTP status {response.status}"
+                            message=f"HTTP-Status {response.status}"
                         )
                     return await response.text()
             except asyncio.TimeoutError:
-                raise Exception("Die Website hat zu lange gebraucht, um zu antworten (Timeout).")
+                raise Exception("Die Website hat zu lange zum Antworten gebraucht (Timeout).")
             except aiohttp.ClientError as e:
-                raise Exception(f"Netzwerkfehler beim Abrufen der Seite: {str(e)}")
+                raise Exception(f"Netzwerkfehler beim Laden der Seite: {str(e)}")
 
     async def scrape_article_detail(self, url: str) -> Dict[str, Any]:
-        """Scrapes the details of a single fatwa article."""
+        """Scrapt die Details eines einzelnen Fatwa-Artikels."""
         html = await self._fetch_html(url)
         soup = BeautifulSoup(html, "html.parser")
         
         item_page = soup.find(class_="item-page")
         if not item_page:
-            raise Exception("Das Fatwa-Format auf der Seite konnte nicht erkannt werden.")
+            raise Exception("Das Format von diesem Fatwa konnte ich leider nicht richtig lesen.")
 
-        # Title
+        # Titel
         title_el = item_page.find("h1")
         title = title_el.get_text().strip() if title_el else "Unbenanntes Urteil"
 
-        # Category
+        # Kategorie
         category = "Allgemein"
         category_el = item_page.find(class_="category-name")
         if category_el:
             category_text = category_el.get_text().strip()
             category = re.sub(r"^(Kategorie|Category):\s*", "", category_text, flags=re.IGNORECASE)
 
-        # Scholar (Gelehrter)
+        # Gelehrter
         scholar = "Unbekannter Gelehrter"
         createdby_el = item_page.find(class_="createdby")
         if createdby_el:
@@ -147,7 +147,7 @@ class ReferenceCog(commands.Cog):
             else:
                 scholar = createdby_el.get_text().strip()
 
-        # Date
+        # Datum
         date_str = "Unbekannt"
         create_el = item_page.find(class_="create")
         if create_el:
@@ -157,18 +157,18 @@ class ReferenceCog(commands.Cog):
             else:
                 date_str = create_el.get_text().strip()
 
-        # Question and Answer
+        # Frage und Antwort
         body_div = item_page.find(class_="com-content-article__body")
         frage_text = "Keine Frage vorhanden."
         antwort_text = "Keine Antwort vorhanden."
         
         if body_div:
-            # Try to get specific question and answer structures
+            # Versuchen, die speziellen HTML-Klassen für Frage/Antwort zu finden
             frage_div = body_div.find(class_="frage")
             fatwa_div = body_div.find(class_="fatwa")
             
             if frage_div:
-                # Remove audio tags and forms
+                # Audio-Tags und Formulare entfernen
                 for tag in frage_div.find_all(["audio", "form"]):
                     tag.decompose()
                 frage_text = frage_div.get_text(separator="\n").strip()
@@ -178,14 +178,14 @@ class ReferenceCog(commands.Cog):
                     tag.decompose()
                 antwort_text = fatwa_div.get_text(separator="\n").strip()
             
-            # Fallback if specific classes aren't found
+            # Fallback, falls die spezifischen Klassen fehlen
             if not frage_div and not fatwa_div:
                 clean_body = BeautifulSoup(str(body_div), "html.parser")
                 for tag in clean_body.find_all(["audio", "form", "script", "style"]):
                     tag.decompose()
                 
                 full_text = clean_body.get_text(separator="\n").strip()
-                # Try simple split on "Frage:" / "Antwort:"
+                # Einfacher Split-Versuch bei "Frage:" / "Antwort:"
                 parts = re.split(r"\b(Frage|Antwort):\s*", full_text, flags=re.IGNORECASE)
                 if len(parts) >= 5:
                     frage_text = parts[2].strip()
@@ -194,7 +194,7 @@ class ReferenceCog(commands.Cog):
                     antwort_text = full_text
                     frage_text = "Siehe Beschreibung."
         
-        # Clean up excessive newlines
+        # Mehrfache Leerzeilen entfernen
         frage_text = re.sub(r"\n{3,}", "\n\n", frage_text)
         antwort_text = re.sub(r"\n{3,}", "\n\n", antwort_text)
 
@@ -209,7 +209,7 @@ class ReferenceCog(commands.Cog):
         }
 
     async def scrape_max_start_offset(self) -> int:
-        """Parses the homepage and returns the maximum pagination start value (fallback)."""
+        """Liest die Startseite aus und ermittelt die maximale Seitenzahl für die Paginierung (Fallback)."""
         try:
             html = await self._fetch_html("https://islamfatwa.net/")
             soup = BeautifulSoup(html, "html.parser")
@@ -223,11 +223,11 @@ class ReferenceCog(commands.Cog):
             
             return max(start_values) if start_values else 2250
         except Exception as e:
-            logger.warning(f"Error scraping max start offset, defaulting to 2250: {e}")
+            logger.warning(f"Fehler beim Scraping des maximalen Start-Offsets, nutze Standardwert 2250: {e}")
             return 2250
 
     async def scrape_articles_from_list(self, list_url: str) -> List[str]:
-        """Scrapes article detail URLs from a listing page (fallback)."""
+        """Liest die Detail-URLs von einer Übersichtsseite aus (Fallback)."""
         html = await self._fetch_html(list_url)
         soup = BeautifulSoup(html, "html.parser")
         
@@ -241,10 +241,10 @@ class ReferenceCog(commands.Cog):
                     urls.append(abs_url)
         return urls
 
-    # --- Embed Formatting Helpers ---
+    # --- Hilfsfunktionen für Embed-Formatierung ---
 
     def create_fatwa_embed(self, fatwa: Dict[str, Any]) -> discord.Embed:
-        """Formats a single fatwa detail dict into a highly polished Discord Embed."""
+        """Formatiert ein Fatwa-Detail-Wörterbuch in ein schönes Discord Embed."""
         color = self.bot.settings.get("embed_color", 0x0a58ca)
         embed = discord.Embed(
             title=fatwa["title"],
@@ -252,7 +252,7 @@ class ReferenceCog(commands.Cog):
             color=color
         )
 
-        # Apply branding headers and icons
+        # Branding-Kopfzeile und Icons hinzufügen
         embed.set_author(
             name="Islam Fatwa",
             url="https://islamfatwa.net/",
@@ -261,7 +261,7 @@ class ReferenceCog(commands.Cog):
         if self.bot.settings.get("show_thumbnails", True):
             embed.set_thumbnail(url="https://islamfatwa.net/images/apple-touch-icon.png")
 
-        # Let's format the question blockquote safely, ensuring empty lines are blockquoted as well
+        # Frage-Blockzitat formatieren und leere Zeilen mitschützen
         blockquote_frage = ""
         if fatwa["frage"] and fatwa["frage"] != "Siehe Beschreibung.":
             lines = []
@@ -275,7 +275,7 @@ class ReferenceCog(commands.Cog):
 
         desc_parts = []
         
-        # Metadata block
+        # Metadaten-Block
         metadata_block = (
             "### 👤 Details zum Urteil\n"
             f"> 👤 **Gelehrter:** {fatwa['scholar']}\n"
@@ -292,7 +292,7 @@ class ReferenceCog(commands.Cog):
         
         full_desc = "\n\n".join(desc_parts)
         
-        # Max description limit is 4096. Let's ensure no overflow.
+        # Die maximale Beschreibungslänge bei Discord ist 4096 Zeichen. Darauf achten wir hier.
         max_desc_len = 3800
         if len(full_desc) > max_desc_len:
             meta_len = len(metadata_block)
@@ -310,7 +310,7 @@ class ReferenceCog(commands.Cog):
             desc_parts.append(
                 f"### ✍️ Antwort (gekürzt)\n"
                 f"{truncated_ans}...\n\n"
-                f"📖 *[Vollständiges Urteil auf islamfatwa.net lesen]({fatwa['url']})*"
+                f"📖 *[Ganzes Urteil auf islamfatwa.net lesen]({fatwa['url']})*"
             )
             full_desc = "\n\n".join(desc_parts)
 
@@ -322,14 +322,10 @@ class ReferenceCog(commands.Cog):
         )
         return embed
 
-    # --- Discord Slash Commands ---
-
-    # --- Advanced Filtered Search Executor ---
+    # --- Suche mit erweiterten Filtern ---
 
     async def execute_filtered_search(self, state: SearchState) -> List[Dict[str, Any]]:
-        """
-        Executes a search query filtered by category and scholar using local sitemap URLs.
-        """
+        """Führt eine Suche aus, gefiltert nach Kategorie und Gelehrten, unter Verwendung der lokalen Sitemap."""
         if not self.sitemap_urls:
             await self.load_sitemap()
 
@@ -344,14 +340,14 @@ class ReferenceCog(commands.Cog):
             norm_query = normalize(state.query)
             keywords = norm_query.split()
 
-        # If no query and no filters, return empty results to prevent massive initial scrape load
+        # Falls keine Kriterien angegeben sind, leere Liste zurückgeben, um Überlastung zu vermeiden
         if not keywords and not state.category and not state.scholar:
             return []
 
-        # Filter URLs in memory
+        # URLs im Speicher filtern
         matching_urls = []
         for url in self.sitemap_urls:
-            # Exclude category parent pages (only keep leaf articles)
+            # Kategorie-Hauptseiten ausschließen (nur die eigentlichen Artikel behalten)
             is_category = False
             for other_u in self.sitemap_urls:
                 if other_u != url and other_u.startswith(url + "/"):
@@ -360,11 +356,11 @@ class ReferenceCog(commands.Cog):
             if is_category:
                 continue
 
-            # Filter by Category
+            # Nach Kategorie filtern
             if state.category and f"/{state.category}" not in url:
                 continue
 
-            # Filter by Keyword
+            # Nach Suchbegriff filtern
             if keywords:
                 norm_url = normalize(url)
                 if not all(kw in norm_url for kw in keywords):
@@ -372,21 +368,21 @@ class ReferenceCog(commands.Cog):
 
             matching_urls.append(url)
 
-        # Reverse matching URLs to prioritize the newest articles
+        # URLs umdrehen, um neuere Artikel zuerst anzuzeigen
         matching_urls.reverse()
 
-        # Fetch detail pages concurrently for the top 15 candidates
+        # Details für die Top 15 Treffer gleichzeitig abrufen
         tasks_list = [self.scrape_article_detail(url) for url in matching_urls[:15]]
         parsed_results = await asyncio.gather(*tasks_list, return_exceptions=True)
 
         successful_results = []
         for item in parsed_results:
             if isinstance(item, Exception):
-                logger.error(f"Error scraping search candidate: {item}")
+                logger.error(f"Fehler beim Scraping des Suchtreffers: {item}")
             else:
                 successful_results.append(item)
 
-        # Filter by Scholar in memory
+        # Im Speicher nach Gelehrten filtern
         if state.scholar:
             def normalize_scholar(text: str) -> str:
                 text = text.lower()
@@ -406,13 +402,13 @@ class ReferenceCog(commands.Cog):
         search_limit = self.bot.settings.get("search_limit", 3)
         return successful_results[:search_limit]
 
-    # --- Discord Slash Commands ---
+    # --- Discord Slash-Commands ---
 
     @app_commands.command(name="suche", description="Sucht nach Fatawa auf islamfatwa.net")
     @app_commands.describe(
-        suchbegriff="Der Begriff, nach dem gesucht werden soll (optional)",
-        kategorie="Die Kategorie, nach der gefiltert werden soll (optional)",
-        gelehrter="Der Gelehrte, nach dem gefiltert werden soll (optional)"
+        suchbegriff="Wonach möchtest du suchen? (optional)",
+        kategorie="Filtere nach einer bestimmten Kategorie (optional)",
+        gelehrter="Filtere nach einem bestimmten Gelehrten (optional)"
     )
     @app_commands.choices(kategorie=[
         app_commands.Choice(name="Aqidah (Fundamente)", value="aqidah-tauhid"),
@@ -438,25 +434,25 @@ class ReferenceCog(commands.Cog):
         kategorie: Optional[str] = None,
         gelehrter: Optional[str] = None
     ):
-        # Defer response since loading index/scraping details takes a few moments
+        # Antwort verzögern, da das Laden und Scraping einen Moment dauern kann
         await interaction.response.defer(ephemeral=False)
 
-        # Force load sitemap if not loaded yet
+        # Sitemap laden, falls das noch nicht geschehen ist
         if not self.sitemap_urls:
             await self.load_sitemap()
 
         try:
-            # Set up the search state
+            # Such-Status einrichten
             state = SearchState(
                 query=suchbegriff.strip() if suchbegriff else "",
                 category=kategorie,
                 scholar=gelehrter
             )
             
-            # Instantiate the SearchDashboardView panel
+            # Das Such-Dashboard-Menü erstellen
             view = SearchDashboardView(self, state)
             
-            # Execute search query and build initial layout
+            # Suche ausführen und das Layout aufbauen
             view.current_results = await self.execute_filtered_search(state)
             search_embed = view.build_embed()
             view.search_embed = search_embed
@@ -465,20 +461,20 @@ class ReferenceCog(commands.Cog):
             await interaction.followup.send(embed=search_embed, view=view)
             
         except Exception as e:
-            logger.error(f"Error initializing search panel: {e}", exc_info=True)
+            logger.error(f"Fehler beim Laden des Such-Panels: {e}", exc_info=True)
             conn_error_embed = discord.Embed(
-                color=0xe74c3c # Sleek crimson red
+                color=0xe74c3c # Schönes Karmesinrot für Fehler
             )
             conn_error_embed.description = (
                 "### 🔌 Panel-Ladefehler\n"
-                "Das Such-Panel konnte nicht initialisiert werden. Bitte versuche es später noch einmal.\n\n"
+                "Das Such-Panel konnte nicht geladen werden. Versuch's bitte später noch einmal!\n\n"
                 f"> ⚠️ **Details:** *{str(e)}*"
             )
             await interaction.followup.send(embed=conn_error_embed, ephemeral=True)
 
     @app_commands.command(name="fatwa_des_tages", description="Postet das aktuelle Fatwa des Tages von islamfatwa.net")
     async def fatwa_des_tages(self, interaction: discord.Interaction):
-        """Allows users to manually trigger a daily/recent fatwa post in the current channel."""
+        """Ermöglicht es Benutzern, ein aktuelles Fatwa des Tages manuell im Kanal zu posten."""
         await interaction.response.defer(ephemeral=False)
         
         try:
@@ -491,20 +487,20 @@ class ReferenceCog(commands.Cog):
                 view=BookmarkView(button_style)
             )
         except Exception as e:
-            logger.error(f"Error fetching manual latest fatwa: {e}", exc_info=True)
+            logger.error(f"Fehler beim manuellen Abrufen des neuesten Fatwas: {e}", exc_info=True)
             error_embed = discord.Embed(
                 color=0xe74c3c
             )
             error_embed.description = (
                 "### ❌ Fehler beim Laden\n"
-                "Das aktuelle Fatwa des Tages konnte leider nicht abgerufen werden.\n\n"
+                "Ich konnte das aktuelle Fatwa des Tages leider nicht abrufen.\n\n"
                 f"> ⚠️ **Details:** *{str(e)}*"
             )
             await interaction.followup.send(embed=error_embed, ephemeral=True)
 
     @app_commands.command(name="zufaellige_fatwa", description="Postet ein zufälliges Fatwa von islamfatwa.net")
     async def zufaellige_fatwa(self, interaction: discord.Interaction):
-        """Allows users to manually trigger a random fatwa post in the current channel."""
+        """Ermöglicht es Benutzern, ein zufälliges Fatwa manuell im Kanal zu posten."""
         await interaction.response.defer(ephemeral=False)
         
         try:
@@ -517,28 +513,28 @@ class ReferenceCog(commands.Cog):
                 view=BookmarkView(button_style)
             )
         except Exception as e:
-            logger.error(f"Error fetching manual random fatwa: {e}", exc_info=True)
+            logger.error(f"Fehler beim manuellen Abrufen eines zufälligen Fatwas: {e}", exc_info=True)
             error_embed = discord.Embed(
                 color=0xe74c3c
             )
             error_embed.description = (
                 "### ❌ Fehler beim Laden\n"
-                "Es konnte kein zufälliges Fatwa abgerufen werden.\n\n"
+                "Ich konnte leider kein zufälliges Fatwa laden.\n\n"
                 f"> ⚠️ **Details:** *{str(e)}*"
             )
             await interaction.followup.send(embed=error_embed, ephemeral=True)
 
-    # --- Background Loop Logic ---
+    # --- Hintergrund-Aufgaben ---
 
     async def _get_random_fatwa(self) -> Dict[str, Any]:
-        """Fetches a random fatwa by choosing a random article from the cached sitemap."""
+        """Wählt ein zufälliges Fatwa aus der zwischengespeicherten Sitemap aus und lädt die Details."""
         article_urls = []
         if self.sitemap_urls:
-            # Filter sitemap for actual article leaf nodes
+            # Sitemap nach tatsächlichen Artikel-URLs filtern
             for u in self.sitemap_urls:
                 last_segment = u.rstrip("/").split("/")[-1]
                 if re.match(r'^\d+-', last_segment):
-                    # Exclude parent categories/directories
+                    # Kategorie-Hauptseiten ausschließen
                     is_category = False
                     for other_u in self.sitemap_urls:
                         if other_u != u and other_u.startswith(u + "/"):
@@ -549,11 +545,11 @@ class ReferenceCog(commands.Cog):
 
         if article_urls:
             random_url = random.choice(article_urls)
-            logger.info(f"Selecting random sitemap URL: {random_url}")
+            logger.info(f"Wähle zufällige Sitemap-URL aus: {random_url}")
             return await self.scrape_article_detail(random_url)
 
-        # Fallback to paginated list scraping if sitemap cache is empty
-        logger.warning("Sitemap URLs not available. Falling back to paginated scraping.")
+        # Fallback auf seitenweises Scraping, falls die Sitemap leer ist
+        logger.warning("Keine Sitemap-URLs vorhanden. Weiche auf seitenweises Scraping aus.")
         max_start = await self.scrape_max_start_offset()
         num_pages = max_start // 10
         random_page = random.randint(0, num_pages) * 10
@@ -564,42 +560,42 @@ class ReferenceCog(commands.Cog):
             urls = await self.scrape_articles_from_list("https://islamfatwa.net/")
             
         if not urls:
-            raise Exception("Es konnten keine Urteils-Links auf der Website gefunden werden.")
+            raise Exception("Ich konnte keine Urteils-Links auf der Website finden.")
 
         random_url = random.choice(urls)
         return await self.scrape_article_detail(random_url)
 
     async def _get_latest_fatwa(self) -> Dict[str, Any]:
-        """Fetches the latest fatwa posted on the homepage."""
+        """Lädt das neueste Fatwa von der Startseite herunter."""
         urls = await self.scrape_articles_from_list("https://islamfatwa.net/")
         if not urls:
-            raise Exception("Keine Beiträge auf der Startseite gefunden.")
+            raise Exception("Ich konnte keine Beiträge auf der Startseite finden.")
         latest_url = urls[0]
         return await self.scrape_article_detail(latest_url)
 
     @tasks.loop(hours=24)
     async def daily_fatwa_loop(self):
-        """Background task running every 24 hours to post a fatwa to a designated channel."""
-        logger.info("Starting scheduled daily fatwa retrieval...")
+        """Hintergrundaufgabe, die alle 24 Stunden ein Fatwa in einem bestimmten Kanal postet."""
+        logger.info("Starte automatischen täglichen Fatwa-Abruf...")
         
-        # Check settings first to see if daily fatwa is enabled
+        # Prüfen, ob der tägliche Post in den Einstellungen aktiviert ist
         if not self.bot.settings.get("daily_fatwa_enabled", True):
-            logger.info("Daily fatwa is disabled in settings. Skipping loop execution.")
+            logger.info("Der tägliche Fatwa-Post ist deaktiviert. Überspringe Ausführung.")
             return
 
-        # Periodic refresh of the sitemap
+        # Regelmäßiges Aktualisieren der Sitemap
         await self.load_sitemap()
         
         channel_id = self.bot.settings.get("daily_channel_id")
         if not channel_id:
             channel_id_str = os.getenv("DAILY_CHANNEL_ID")
             if not channel_id_str:
-                logger.error("DAILY_CHANNEL_ID env variable is not set. Skipping daily task.")
+                logger.error("DAILY_CHANNEL_ID ist in der .env-Datei nicht gesetzt. Überspringe täglichen Post.")
                 return
             try:
                 channel_id = int(channel_id_str)
             except ValueError:
-                logger.error(f"DAILY_CHANNEL_ID '{channel_id_str}' is not a valid integer. Skipping daily task.")
+                logger.error(f"DAILY_CHANNEL_ID '{channel_id_str}' ist keine gültige Zahl. Überspringe täglichen Post.")
                 return
 
         channel = self.bot.get_channel(channel_id)
@@ -607,11 +603,11 @@ class ReferenceCog(commands.Cog):
             try:
                 channel = await self.bot.fetch_channel(channel_id)
             except Exception as e:
-                logger.error(f"Could not fetch channel with ID {channel_id}: {e}")
+                logger.error(f"Kanal mit der ID {channel_id} konnte nicht geladen werden: {e}")
                 return
 
         if not channel:
-            logger.error(f"Channel with ID {channel_id} not found.")
+            logger.error(f"Kanal mit der ID {channel_id} wurde nicht gefunden.")
             return
 
         try:
@@ -622,7 +618,7 @@ class ReferenceCog(commands.Cog):
                 try:
                     fatwa = await self._get_latest_fatwa()
                 except Exception as e:
-                    logger.warning(f"Failed to fetch latest fatwa: {e}. Falling back to random fatwa.")
+                    logger.warning(f"Fehler beim Laden des neuesten Fatwas: {e}. Weiche auf ein zufälliges Fatwa aus.")
                     fatwa = await self._get_random_fatwa()
 
             embed = self.create_fatwa_embed(fatwa)
@@ -633,14 +629,14 @@ class ReferenceCog(commands.Cog):
                 embed=embed,
                 view=BookmarkView(button_style)
             )
-            logger.info(f"Successfully posted daily fatwa to channel {channel_id}")
+            logger.info(f"Tägliches Fatwa erfolgreich im Kanal {channel_id} gepostet.")
             
         except Exception as e:
-            logger.error(f"Error in daily fatwa loop execution: {e}", exc_info=True)
+            logger.error(f"Fehler in der täglichen Fatwa-Schleife: {e}", exc_info=True)
 
     @daily_fatwa_loop.before_loop
     async def before_daily_fatwa_loop(self):
-        """Wait until the bot is logged in and populate sitemap cache before starting loop."""
+        """Wartet, bis der Bot bereit ist, und füllt den Sitemap-Cache, bevor die Schleife startet."""
         await self.bot.wait_until_ready()
         await self.load_sitemap()
 
