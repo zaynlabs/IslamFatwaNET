@@ -26,6 +26,8 @@ class ReferenceCog(commands.Cog):
         self.bot = bot
         # Cache für alle URLs aus der sitemap.xml
         self.sitemap_urls: List[str] = []
+        # Cache für übergeordnete Verzeichnisse (Kategorien) zur schnellen O(1)-Prüfung
+        self.parent_dirs: set = set()
         # Startet die Hintergrundschleife
         self.daily_fatwa_loop.start()
 
@@ -55,6 +57,14 @@ class ReferenceCog(commands.Cog):
                     urls.append(url_node.text.strip())
             
             self.sitemap_urls = urls
+
+            # Übergeordnete Verzeichnisse (Kategorien) im O(N) Durchlauf sammeln
+            self.parent_dirs = set()
+            for u in urls:
+                parts = u.rstrip("/").split("/")
+                for i in range(3, len(parts)):
+                    self.parent_dirs.add("/".join(parts[:i]))
+            
             logger.info(f"Sitemap erfolgreich eingelesen! {len(self.sitemap_urls)} URLs im Cache.")
         except Exception as e:
             logger.error(f"Fehler beim Laden der sitemap.xml: {e}", exc_info=True)
@@ -79,18 +89,13 @@ class ReferenceCog(commands.Cog):
             if all(kw in norm_url for kw in keywords):
                 matches.append(url)
 
-        # Eigentliche Artikel-URLs filtern und bevorzugen (Zahlen-IDs am Ende des Pfads, keine Kategorien)
+        # Eigentliche Artikel-URLs filtern und bevorzugen (keine Kategorien)
         article_matches = []
         for m in matches:
             last_segment = m.rstrip("/").split("/")[-1]
             if re.match(r'^\d+-', last_segment):
-                # Überprüfen, ob diese URL ein Präfix einer anderen URL ist (um Kategorie-Seiten auszuschließen)
-                is_category = False
-                for other_u in self.sitemap_urls:
-                    if other_u != m and other_u.startswith(m + "/"):
-                        is_category = True
-                        break
-                if not is_category:
+                # Wenn diese URL als Verzeichnis für andere URLs dient, filtern wir sie aus
+                if m not in self.parent_dirs:
                     article_matches.append(m)
 
         return article_matches if article_matches else matches
@@ -126,18 +131,18 @@ class ReferenceCog(commands.Cog):
         if not item_page:
             raise Exception("Das Format von diesem Fatwa konnte ich leider nicht richtig lesen.")
 
-        # Titel
+        # Titel auslesen
         title_el = item_page.find("h1")
         title = title_el.get_text().strip() if title_el else "Unbenanntes Urteil"
 
-        # Kategorie
+        # Kategorie auslesen
         category = "Allgemein"
         category_el = item_page.find(class_="category-name")
         if category_el:
             category_text = category_el.get_text().strip()
             category = re.sub(r"^(Kategorie|Category):\s*", "", category_text, flags=re.IGNORECASE)
 
-        # Gelehrter
+        # Gelehrter auslesen
         scholar = "Unbekannter Gelehrter"
         createdby_el = item_page.find(class_="createdby")
         if createdby_el:
@@ -147,7 +152,7 @@ class ReferenceCog(commands.Cog):
             else:
                 scholar = createdby_el.get_text().strip()
 
-        # Datum
+        # Datum auslesen
         date_str = "Unbekannt"
         create_el = item_page.find(class_="create")
         if create_el:
@@ -157,7 +162,7 @@ class ReferenceCog(commands.Cog):
             else:
                 date_str = create_el.get_text().strip()
 
-        # Frage und Antwort
+        # Frage und Antwort auslesen
         body_div = item_page.find(class_="com-content-article__body")
         frage_text = "Keine Frage vorhanden."
         antwort_text = "Keine Antwort vorhanden."
@@ -344,16 +349,10 @@ class ReferenceCog(commands.Cog):
         if not keywords and not state.category and not state.scholar:
             return []
 
-        # URLs im Speicher filtern
+        # URLs im Speicher filtern (O(1)-Abgleich mit parent_dirs)
         matching_urls = []
         for url in self.sitemap_urls:
-            # Kategorie-Hauptseiten ausschließen (nur die eigentlichen Artikel behalten)
-            is_category = False
-            for other_u in self.sitemap_urls:
-                if other_u != url and other_u.startswith(url + "/"):
-                    is_category = True
-                    break
-            if is_category:
+            if url in self.parent_dirs:
                 continue
 
             # Nach Kategorie filtern
@@ -534,13 +533,7 @@ class ReferenceCog(commands.Cog):
             for u in self.sitemap_urls:
                 last_segment = u.rstrip("/").split("/")[-1]
                 if re.match(r'^\d+-', last_segment):
-                    # Kategorie-Hauptseiten ausschließen
-                    is_category = False
-                    for other_u in self.sitemap_urls:
-                        if other_u != u and other_u.startswith(u + "/"):
-                            is_category = True
-                            break
-                    if not is_category:
+                    if u not in self.parent_dirs:
                         article_urls.append(u)
 
         if article_urls:
