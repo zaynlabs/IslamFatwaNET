@@ -472,7 +472,7 @@ class ReferenceCog(commands.Cog):
             )
             await interaction.followup.send(embed=conn_error_embed, ephemeral=True)
 
-    @app_commands.command(name="fatwa_des_tages", description="Postet das aktuelle Fatwa des Tages von islamfatwa.net")
+    @app_commands.command(name="daily", description="Postet das aktuelle Fatwa des Tages von islamfatwa.net")
     async def fatwa_des_tages(self, interaction: discord.Interaction):
         """Ermöglicht es Benutzern, ein aktuelles Fatwa des Tages manuell im Kanal zu posten."""
         await interaction.response.defer(ephemeral=False)
@@ -498,7 +498,7 @@ class ReferenceCog(commands.Cog):
             )
             await interaction.followup.send(embed=error_embed, ephemeral=True)
 
-    @app_commands.command(name="zufaellige_fatwa", description="Postet ein zufälliges Fatwa von islamfatwa.net")
+    @app_commands.command(name="random", description="Postet ein zufälliges Fatwa von islamfatwa.net")
     async def zufaellige_fatwa(self, interaction: discord.Interaction):
         """Ermöglicht es Benutzern, ein zufälliges Fatwa manuell im Kanal zu posten."""
         await interaction.response.defer(ephemeral=False)

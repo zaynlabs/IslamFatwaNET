@@ -10,7 +10,7 @@ class SettingsCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @app_commands.command(name="settings", description="Öffnet das Einstellungs-Panel für den Islam Fatwa Bot")
+    @app_commands.command(name="einstellungen", description="Öffnet das Einstellungs-Panel für den Islam Fatwa Bot")
     @app_commands.default_permissions(administrator=True)
     async def settings(self, interaction: discord.Interaction) -> None:
         """Öffnet das Einstellungs-Menü für den Bot (nur für Admins sichtbar)."""

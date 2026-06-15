@@ -4,17 +4,17 @@ Ein moderner, benutzerfreundlicher Discord-Bot zum Suchen, Lesen und Speichern v
 
 ---
 
-## ✨ Features
+## ⚡ Schnellstart für Windows (Ohne Vorkenntnisse)
 
-- 🔍 **Intelligente Suche:** Durchsuche die gesamte Fatwa-Datenbank direkt in Discord. Filtere Ergebnisse nach Gelehrten (z. B. Ibn Baz, Uthaimin, Fauzan) und Kategorien.
-- 🔖 **Persistente Lesezeichen:** Speicher dir deine Lieblings-Rechtsurteile einfach per Knopfdruck als Direktnachricht (DM) ab.
-- 📅 **Automatischer Post (Täglich):** Lass täglich das neueste oder ein zufälliges Fatwa in einem von dir ausgewählten Kanal posten.
-- 🎨 **Schickes Admin-Dashboard:** Konfiguriere das Design (Theme-Farben, Bilder, Knöpfe) und Verhalten bequem direkt in Discord über `/einstellungen`.
-- ⚡ **Blitzschnell:** Nutzt lokales Caching der Sitemap für blitzschnelle Suchanfragen und paralleles Laden der Ergebnisse.
+Du musst keine Befehle in eine Konsole eintippen! Folge einfach diesen Schritten:
+
+1. Lade das Projekt herunter und entpacke es.
+2. Doppelklicke auf die Datei **`starten.bat`** im Hauptordner.
+3. Der Assistent installiert automatisch alle benötigten Pakete und führt dich durch das Eintragen deines Discord-Bot-Tokens.
 
 ---
 
-## 🛠️ Installation & Setup
+## 🛠️ Manuelle Installation & Setup (Für Fortgeschrittene)
 
 ### Voraussetzungen
 Stelle sicher, dass du Python 3.8+ installiert hast.
