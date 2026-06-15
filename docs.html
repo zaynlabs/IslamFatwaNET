@@ -5,28 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Islam Fatwa Bot - Dokumentation</title>
     <style>
-        /* Modernes VS Code Dark-Theme Farbschema */
+        /* Apple-Inspired Design System & Variables */
         :root {
-            --bg-activitybar: #333333;
-            --bg-sidebar: #252526;
-            --bg-editor: #1e1e1e;
-            --bg-editor-tabs: #2d2d2d;
-            --bg-editor-tab-active: #1e1e1e;
-            --bg-editor-tab-inactive: #2d2d2d;
-            --bg-statusbar: #007acc;
-            
-            --border-color: #3c3c3c;
-            --text-main: #cccccc;
-            --text-bright: #ffffff;
-            --text-dark: #858585;
-            
-            --syntax-keyword: #569cd6;
-            --syntax-string: #ce9178;
-            --syntax-comment: #6a9955;
-            --syntax-number: #b5cea8;
-            --syntax-variable: #9cdcfe;
-            --syntax-class: #4ec9b0;
-            --syntax-emoji: #ffd700;
+            --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --bg-dark: #09090b;
+            --card-bg: rgba(24, 24, 27, 0.65);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent-blue: #0071e3;
+            --accent-green: #30d158;
+            --accent-red: #ff453a;
+            --accent-purple: #af52de;
+            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * {
@@ -36,573 +27,569 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-editor);
-            color: var(--text-main);
-            height: 100vh;
+            font-family: var(--apple-font);
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        /* Haupt-Layout */
-        .window-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* 1. Activity Bar (Ganz links) */
-        .activity-bar {
-            background-color: var(--bg-activitybar);
-            width: 50px;
-            display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding-top: 15px;
-            border-right: 1px solid var(--border-color);
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .activity-button {
-            width: 50px;
-            height: 50px;
+        /* Siri/Apple Intelligence Background Glows */
+        .glow-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.25;
+            animation: pulse-glow 10s infinite alternate;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 80%);
+            top: -10%;
+            left: -10%;
+        }
+
+        .glow-2 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-purple) 0%, transparent 80%);
+            bottom: -20%;
+            right: -10%;
+            animation-delay: -2s;
+        }
+
+        .glow-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-green) 0%, transparent 80%);
+            top: 40%;
+            right: 20%;
+            opacity: 0.15;
+            animation-delay: -4s;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.15) translate(30px, 30px); }
+        }
+
+        /* Hauptcontainer */
+        .app-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            z-index: 1;
+            display: flex;
+            gap: 25px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        /* Schwebende Glassmorphic-Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-icon {
+            font-size: 24px;
+            background: linear-gradient(135deg, #0071e3 0%, #af52de 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-dark);
-            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(180deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Apple-Style Kapsel-Suche */
+        .search-wrapper {
             position: relative;
-            transition: color 0.2s ease;
-        }
-
-        .activity-button.active {
-            color: var(--text-bright);
-            border-left: 2px solid var(--text-bright);
-        }
-
-        .activity-button:hover {
-            color: var(--text-bright);
-        }
-
-        .activity-button svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-
-        /* 2. Sidebar (Explorer / Dateiliste) */
-        .sidebar {
-            background-color: var(--bg-sidebar);
-            width: 250px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-        }
-
-        .sidebar-header {
-            padding: 10px 20px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-dark);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Suchfeld in der Sidebar */
-        .search-container {
-            padding: 5px 15px 10px 15px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
         }
 
         .search-input {
             width: 100%;
-            background-color: #3c3c3c;
-            border: 1px solid #6b6b6b;
-            color: var(--text-bright);
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: var(--text-primary);
+            padding: 10px 16px 10px 36px;
+            font-size: 14px;
             outline: none;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-dark);
+            transition: var(--transition-smooth);
         }
 
         .search-input:focus {
-            border-color: var(--bg-statusbar);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
         }
 
-        /* Dateibaum */
-        .file-tree {
-            padding-top: 10px;
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* Navigationsmenü */
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             overflow-y: auto;
             flex: 1;
         }
 
-        .folder-item {
+        .nav-item {
             display: flex;
             align-items: center;
-            padding: 6px 20px;
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--text-bright);
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
             cursor: pointer;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 6px 35px;
-            font-size: 13px;
-            color: var(--text-main);
-            cursor: pointer;
-            transition: background-color 0.1s ease;
-        }
-
-        .file-item:hover {
-            background-color: #2a2d2e;
-        }
-
-        .file-item.active {
-            background-color: #37373d;
-            color: var(--text-bright);
-        }
-
-        .file-icon {
-            margin-right: 8px;
+            color: var(--text-secondary);
             font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
         }
 
-        /* 3. Editor-Bereich (Rechts) */
-        .editor-container {
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+        }
+
+        /* Schwebendes Glassmorphic-Inhaltsfenster */
+        .content-panel {
             flex: 1;
-            background-color: var(--bg-editor);
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        /* Tabs am oberen Editor-Rand */
-        .editor-tabs {
-            background-color: var(--bg-sidebar);
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            overflow-x: auto;
-        }
-
-        .editor-tab {
-            background-color: var(--bg-editor-tab-inactive);
-            padding: 10px 20px;
-            font-size: 12px;
-            color: var(--text-dark);
-            border-right: 1px solid var(--border-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s;
-        }
-
-        .editor-tab:hover {
-            background-color: #2b2b2b;
-            color: var(--text-bright);
-        }
-
-        .editor-tab.active {
-            background-color: var(--bg-editor-tab-active);
-            color: var(--text-bright);
-            border-top: 1px solid var(--bg-statusbar);
-        }
-
-        .tab-close {
-            margin-left: 8px;
-            font-size: 10px;
-            cursor: pointer;
-        }
-
-        /* Breadcrumbs unter den Tabs */
-        .breadcrumbs {
-            background-color: var(--bg-editor);
-            padding: 8px 25px;
-            font-size: 11px;
-            color: var(--text-dark);
-            border-bottom: 1px solid #252526;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Eigentlicher Textbereich */
-        .editor-content {
+        /* Editor-Inhalt */
+        .content-body {
             flex: 1;
-            padding: 25px 35px;
+            padding: 40px;
             overflow-y: auto;
             line-height: 1.6;
-            user-select: text;
         }
 
         .doc-page {
             display: none;
-            max-width: 850px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .doc-page.active {
             display: block;
-            animation: fadeIn 0.15s ease-out;
+            animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Formatierungen wie Markdown im Editor */
+        /* Apple-Typografie */
         h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
             color: var(--text-bright);
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            background: linear-gradient(180deg, #ffffff 50%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         h2 {
-            color: var(--text-bright);
-            font-size: 20px;
-            font-weight: 550;
-            margin-top: 25px;
-            margin-bottom: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            margin-top: 32px;
+            margin-bottom: 14px;
+            color: var(--text-primary);
         }
 
         p {
-            margin-bottom: 15px;
-            color: #d4d4d4;
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
         }
 
-        ul, ol {
-            margin-left: 25px;
-            margin-bottom: 15px;
-            color: #d4d4d4;
+        ol, ul {
+            margin-left: 24px;
+            margin-bottom: 18px;
+            color: var(--text-secondary);
         }
 
         li {
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            font-size: 15px;
         }
 
-        code {
-            font-family: "Consolas", "Courier New", monospace;
-            background-color: #2d2d2d;
-            color: #f44747;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 13px;
-        }
-
-        /* Code-Blöcke (VS Code Style) */
+        /* Code-Blöcke (Apple Clean Style) */
         pre {
-            background-color: #1a1a1a;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
             overflow-x: auto;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
         pre code {
-            background-color: transparent;
-            color: #d4d4d4;
-            padding: 0;
-            border-radius: 0;
-            font-size: 13px;
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 13.5px;
+            color: #e4e4e7;
             line-height: 1.5;
             display: block;
         }
 
-        /* Syntax Highlighting */
-        .skw { color: var(--syntax-keyword); }
-        .sst { color: var(--syntax-string); }
-        .sco { color: var(--syntax-comment); }
-        .snu { color: var(--syntax-number); }
-        .sva { color: var(--syntax-variable); }
-        .scl { color: var(--syntax-class); }
-        
-        /* Boxen für Infos/Tipps */
-        .info-box {
-            background-color: rgba(0, 122, 204, 0.1);
-            border-left: 4px solid var(--bg-statusbar);
-            padding: 15px 20px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        code {
+            font-family: "SF Mono", "Consolas", monospace;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f43f5e;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 13px;
         }
 
-        .info-box h4 {
-            color: var(--text-bright);
-            margin-bottom: 5px;
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(10px);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-green);
+            color: #000000;
+            font-weight: 600;
+        }
+
+        /* Infoboxen */
+        .info-card {
+            background: rgba(0, 113, 227, 0.06);
+            border: 1px solid rgba(0, 113, 227, 0.15);
+            border-radius: 18px;
+            padding: 20px;
+            margin: 25px 0;
+            display: flex;
+            gap: 16px;
+        }
+
+        .info-card-icon {
+            font-size: 20px;
+            color: var(--accent-blue);
+        }
+
+        .info-card-content h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .info-card-content p {
+            margin: 0;
             font-size: 14px;
         }
 
-        /* 4. Status Bar (Ganz unten) */
-        .status-bar {
-            background-color: var(--bg-statusbar);
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-            font-size: 12px;
-            color: var(--text-bright);
+        /* Feature-Grid für Befehle */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
         }
 
-        .status-left, .status-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .command-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 20px;
+            transition: var(--transition-smooth);
         }
 
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .command-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
         }
 
-        /* Scrollbar Styling */
+        .command-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command-desc {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Scrollbar-Design */
         ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: transparent;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #424242;
-            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #4f4f4f;
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
 <body>
 
-    <div class="window-container">
+    <!-- Hintergrund Siri-Glows -->
+    <div class="glow-bg">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+        <div class="glow-circle glow-3"></div>
+    </div>
+
+    <!-- Haupt-Layout -->
+    <div class="app-container">
         
-        <!-- 1. Activity Bar -->
-        <div class="activity-bar">
-            <!-- Explorer Icon -->
-            <div class="activity-button active" title="Explorer">
-                <svg viewBox="0 0 24 24">
-                    <path d="M19,5.5H12L10,3.5H5C3.9,3.5 3,4.4 3,5.5V18.5C3,19.6 3.9,20.5 5,20.5H19C20.1,20.5 21,19.6 21,18.5V7.5C21,6.4 20.1,5.5 19,5.5M19,18.5H5V5.5H9.6L11.6,7.5H19V18.5Z"/>
-                </svg>
-            </div>
-            <!-- Search Icon (Zierde) -->
-            <div class="activity-button" title="Suche">
-                <svg viewBox="0 0 24 24">
-                    <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
-                </svg>
-            </div>
-            <!-- Settings Icon (Zierde) -->
-            <div class="activity-button" title="Einstellungen" style="margin-top: auto; margin-bottom: 15px;">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.34 14.86,5.1L14.48,2.45C14.43,2.2 14.22,2 13.97,2H9.97C9.72,2 9.51,2.2 9.46,2.45L9.08,5.1C8.47,5.34 7.9,5.66 7.38,6.05L4.89,5.05C4.67,4.96 4.4,5.05 4.28,5.27L2.28,8.73C2.16,8.95 2.21,9.22 2.4,9.37L4.51,11C4.47,11.34 4.5,11.67 4.5,12C4.5,12.33 4.47,12.65 4.51,12.97L2.4,14.63C2.21,14.78 2.16,15.05 2.28,15.27L4.28,18.73C4.4,18.95 4.67,19.04 4.89,18.95L7.38,17.95C7.9,18.34 8.47,18.66 9.08,18.9L9.46,21.55C9.51,21.8 9.72,22 9.97,22H13.97C14.22,22 14.43,21.8 14.48,21.55L14.86,18.9C15.47,18.66 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- 2. Sidebar -->
+        <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <div class="sidebar-header">
-                <span>Explorer: ISLAM-BOT</span>
-                <span title="Mehr Optionen" style="cursor:pointer;">•••</span>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="searchBox" class="search-input" placeholder="Dokumente durchsuchen..." oninput="filterFiles()">
+            <div class="brand-section">
+                <div class="brand-icon">🕌</div>
+                <div class="brand-title">Islam Fatwa Bot</div>
             </div>
 
-            <div class="file-tree">
-                <div class="folder-item">
-                    <span class="file-icon">📂</span> docs
-                </div>
-                
-                <div class="file-item active" id="file-schnellstart" onclick="openFile('schnellstart')">
-                    <span class="file-icon" style="color: #4fc1ff;">📝</span> schnellstart.md
-                </div>
-                <div class="file-item" id="file-befehle" onclick="openFile('befehle')">
-                    <span class="file-icon" style="color: #ffd700;">⚙️</span> befehle.json
-                </div>
-                <div class="file-item" id="file-einstellungen" onclick="openFile('einstellungen')">
-                    <span class="file-icon" style="color: #4fc1ff;">📝</span> einstellungen.md
-                </div>
-                <div class="file-item" id="file-lesezeichen" onclick="openFile('lesezeichen')">
-                    <span class="file-icon" style="color: #4fc1ff;">📝</span> lesezeichen.md
-                </div>
-                <div class="file-item" id="file-troubleshooting" onclick="openFile('troubleshooting')">
-                    <span class="file-icon" style="color: #ff8080;">⚠️</span> troubleshooting.txt
-                </div>
+            <!-- Kapsel-Suche -->
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchBox" class="search-input" placeholder="Themen filtern..." oninput="filterNavigation()">
             </div>
+
+            <!-- Navigation Links -->
+            <ul class="nav-list">
+                <li class="nav-item active" id="nav-schnellstart" onclick="switchPage('schnellstart')">
+                    <span class="nav-icon">🚀</span> Schnellstart
+                </li>
+                <li class="nav-item" id="nav-befehle" onclick="switchPage('befehle')">
+                    <span class="nav-icon">🤖</span> Bot-Befehle
+                </li>
+                <li class="nav-item" id="nav-einstellungen" onclick="switchPage('einstellungen')">
+                    <span class="nav-icon">⚙️</span> Einstellungen
+                </li>
+                <li class="nav-item" id="nav-lesezeichen" onclick="switchPage('lesezeichen')">
+                    <span class="nav-icon">🔖</span> Lesezeichen
+                </li>
+                <li class="nav-item" id="nav-troubleshooting" onclick="switchPage('troubleshooting')">
+                    <span class="nav-icon">⚠️</span> Fehlersuche
+                </li>
+            </ul>
         </div>
 
-        <!-- 3. Editor-Bereich -->
-        <div class="editor-container">
-            <!-- Tabs -->
-            <div class="editor-tabs">
-                <div class="editor-tab active" id="tab-schnellstart" onclick="openFile('schnellstart')">
-                    <span>schnellstart.md</span>
-                </div>
-                <div class="editor-tab" id="tab-befehle" onclick="openFile('befehle')">
-                    <span>befehle.json</span>
-                </div>
-                <div class="editor-tab" id="tab-einstellungen" onclick="openFile('einstellungen')">
-                    <span>einstellungen.md</span>
-                </div>
-                <div class="editor-tab" id="tab-lesezeichen" onclick="openFile('lesezeichen')">
-                    <span>lesezeichen.md</span>
-                </div>
-                <div class="editor-tab" id="tab-troubleshooting" onclick="openFile('troubleshooting')">
-                    <span>troubleshooting.txt</span>
-                </div>
-            </div>
-
-            <!-- Breadcrumbs -->
-            <div class="breadcrumbs">
-                <span>src</span> &gt; <span>docs</span> &gt; <span id="breadcrumb-filename" style="color: var(--text-bright);">schnellstart.md</span>
-            </div>
-
-            <!-- Editor-Inhalte -->
-            <div class="editor-content">
+        <!-- Inhaltsfenster -->
+        <div class="content-panel">
+            <div class="content-body">
                 
                 <!-- SEITE 1: SCHNELLSTART -->
                 <div class="doc-page active" id="page-schnellstart">
-                    <h1>🚀 Schnellstart & Installation</h1>
-                    <p>Willkommen beim <strong>Islam Fatwa Discord Bot</strong>! Mit diesem Bot holst du dir das gesamte Wissen und die Urteile von <em>islamfatwa.net</em> direkt auf deinen Discord-Server. Keine Panik, die Installation ist kinderleicht.</p>
+                    <h1>Schnellstart & Einrichtung</h1>
+                    <p>Willkommen beim <strong>Islam Fatwa Bot</strong>! Mit diesem Bot kannst du Rechtsurteile von <em>islamfatwa.net</em> direkt auf deinen Discord-Server holen. Die Einrichtung ist extrem einfach und schnell erledigt.</p>
                     
-                    <h2>🌟 Der einfachste Weg (für Windows)</h2>
-                    <p>Wenn du Windows benutzt, haben wir einen praktischen Einrichtungs-Assistenten für dich vorbereitet. Du musst keine Befehle in ein Terminal eingeben!</p>
+                    <h2>✨ Automatische Einrichtung (Windows)</h2>
+                    <p>Nutzt du Windows? Dann kannst du den vollautomatischen Einrichtungs-Assistenten nutzen:</p>
                     <ol>
                         <li>Lade die Bot-Dateien auf deinen Computer herunter und entpacke sie.</li>
-                        <li>Doppelklicke auf die Datei <strong><code>starten.bat</code></strong> im Ordner.</li>
-                        <li>Der Assistent öffnet sich und fragt dich nach deinem Bot-Token. Gib ihn einfach ein und drücke Enter – fertig!</li>
+                        <li>Doppelklicke auf die Datei <strong><code>starten.bat</code></strong> im Hauptordner.</li>
+                        <li>Der Assistent öffnet sich und führt dich komplett durch das Eintragen des Bot-Tokens. Fertig!</li>
                     </ol>
 
-                    <div class="info-box">
-                        <h4>💡 Was macht der Einrichtungs-Assistent?</h4>
-                        <p>Er installiert automatisch alle notwendigen Programmpakete (Bibliotheken), erstellt deine Konfigurationsdatei (<code>.env</code>) und fragt dich, ob du den Bot direkt starten willst.</p>
+                    <div class="info-card">
+                        <div class="info-card-icon">💡</div>
+                        <div class="info-card-content">
+                            <h4>Was macht starten.bat?</h4>
+                            <p>Die Datei prüft, ob die Programmpakete installiert sind (installiert sie falls nötig), erstellt die Konfigurationsdatei und startet deinen Bot ganz unkompliziert per Doppelklick.</p>
+                        </div>
                     </div>
 
-                    <h2>💻 Manueller Start (für erfahrene Nutzer)</h2>
-                    <p>Wenn du lieber die Konsole nutzt oder ein anderes Betriebssystem hast, führe einfach folgende Befehle aus:</p>
-                    <pre><code><span class="sco"># 1. Abhängigkeiten installieren</span>
-pip install -r requirements.txt
-
-<span class="sco"># 2. Bot starten</span>
+                    <h2>💻 Manueller Start</h2>
+                    <p>Für erfahrene Nutzer oder andere Betriebssysteme lässt sich der Bot auch manuell über die Konsole starten:</p>
+                    <pre><button class="copy-btn" onclick="copyCode(this)">Kopieren</button><code>pip install -r requirements.txt
 python main.py</code></pre>
                 </div>
 
-                <!-- SEITE 2: BEFEHLE -->
+                <!-- SEITE 2: BOT-BEFEHLE -->
                 <div class="doc-page" id="page-befehle">
-                    <h1>🤖 Verfügbare Befehle</h1>
-                    <p>Der Bot benutzt ausschließlich moderne <strong>Slash-Commands</strong>. Tippe einfach einen Schrägstrich (<code>/</code>) in deinen Discord-Chat, um die Befehle zu sehen.</p>
+                    <h1>Verfügbare Bot-Befehle</h1>
+                    <p>Der Bot verwendet ausschließlich moderne <strong>Slash-Commands</strong>. Gib einfach einen Schrägstrich (<code>/</code>) im Discord-Chat ein, um alle Befehle anzuzeigen.</p>
                     
-                    <pre><code>{
-  <span class="scl">"/suche"</span>: {
-    <span class="sva">"beschreibung"</span>: <span class="sst">"Öffnet das interaktive Suchmenü direkt in Discord."</span>,
-    <span class="sva">"optionen"</span>: [
-      <span class="sst">"suchbegriff (Was suchst du?)"</span>,
-      <span class="sst">"kategorie (Filter nach Themen)"</span>,
-      <span class="sst">"gelehrter (Filter nach Gelehrten)"</span>
-    ]
-  },
-  <span class="scl">"/daily"</span>: {
-    <span class="sva">"beschreibung"</span>: <span class="sst">"Postet das aktuelle Fatwa des Tages manuell in den Chat."</span>
-  },
-  <span class="scl">"/random"</span>: {
-    <span class="sva">"beschreibung"</span>: <span class="sst">"Postet ein völlig zufälliges Rechtsurteil aus der Datenbank."</span>
-  },
-  <span class="scl">"/einstellungen"</span>: {
-    <span class="sva">"beschreibung"</span>: <span class="sst">"Öffnet das Einstellungs-Panel für Server-Admins."</span>
-  }
-}</code></pre>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="command-name"><span>🔍</span> /suche</div>
+                            <div class="command-desc">Öffnet das interaktive Such-Dashboard. Filtere nach Suchbegriff, Kategorie oder Gelehrten.</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="command-name"><span>🕌</span> /daily</div>
+                            <div class="command-desc">Postet das aktuelle Fatwa des Tages manuell in den Chatkanal.</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="command-name"><span>🔄</span> /random</div>
+                            <div class="command-desc">Postet ein zufälliges Rechtsurteil aus der islamfatwa.net Datenbank.</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="command-name"><span>⚙️</span> /einstellungen</div>
+                            <div class="command-desc">Öffnet das Admin-Einstellungsmenü zur Anpassung von Farbe, Kanal und Vorschau.</div>
+                        </div>
+                    </div>
 
-                    <h2>🔍 Wie funktioniert die Suche?</h2>
-                    <p>Wenn du <code>/suche</code> eingibst, öffnet sich ein schickes Such-Dashboard. Dort kannst du über zwei Auswahllisten (Kategorie und Gelehrter) filtern oder über den Button <strong>Suchwort ändern</strong> einen Begriff eintippen. Der Bot durchsucht daraufhin blitzschnell die Website und zeigt dir die besten Ergebnisse.</p>
+                    <h2>💡 Interaktive Suche nutzen</h2>
+                    <p>Nach Eingabe von <code>/suche</code> zeigt der Bot dir ein Dashboard mit Filtermöglichkeiten. Du kannst bequem Kategorien oder Gelehrte über Dropdown-Menüs auswählen oder über den Stift-Button einen eigenen Suchbegriff eintippen.</p>
                 </div>
 
                 <!-- SEITE 3: EINSTELLUNGEN -->
                 <div class="doc-page" id="page-einstellungen">
-                    <h1>⚙️ Einstellungen & Design</h1>
-                    <p>Du kannst das Design des Bots (Farben, Knöpfe, Vorschaufenster) ganz einfach anpassen. Dafür gibt es zwei Wege.</p>
+                    <h1>Bot-Einstellungen anpassen</h1>
+                    <p>Du kannst das optische Erscheinungsbild des Bots sowie das automatische Posten direkt in Discord anpassen.</p>
                     
-                    <h2>🛠️ Weg A: In Discord anpassen (Empfohlen)</h2>
-                    <p>Tippe einfach <code>/einstellungen</code> im Discord-Chat ein (du musst Server-Administrator sein):</p>
+                    <h2>🎨 /einstellungen im Chat</h2>
+                    <p>Wenn du Administrator auf dem Discord-Server bist, kannst du das Konfigurations-Panel aufrufen:</p>
                     <ul>
-                        <li><strong>Theme-Farbe:</strong> Ändere die Farbe der Infokarten (Embeds).</li>
-                        <li><strong>Kanal festlegen:</strong> Setze den aktuellen Kanal für das automatische tägliche Posten.</li>
-                        <li><strong>Vorschau:</strong> Schalte die Vorschaubilder (Thumbnails) an oder aus.</li>
-                        <li>Speichere danach einfach mit dem <strong>Speichern-Knopf</strong> ab.</li>
+                        <li><strong>Theme-Farbe:</strong> Wähle eine Designfarbe für die Botschaften (z. B. Königsblau oder Smaragdgrün).</li>
+                        <li><strong>Posting-Kanal:</strong> Lege den Kanal fest, in dem das tägliche Fatwa gepostet wird.</li>
+                        <li><strong>Bilder-Vorschau:</strong> Schalte Vorschaubilder (Thumbnails) an oder aus.</li>
                     </ul>
 
-                    <h2>📄 Weg B: In settings.json anpassen</h2>
-                    <p>Du kannst die Datei <code>settings.json</code> im Ordner des Bots auch direkt mit einem Editor bearbeiten:</p>
-                    <pre><code>{
-    <span class="sva">"embed_color"</span>: <span class="sst">"0x0a58ca"</span>, <span class="sco">// Theme-Farbe der Embeds</span>
-    <span class="sva">"search_limit"</span>: <span class="snu">3</span>,          <span class="sco">// Max. Suchtreffer parallel laden</span>
-    <span class="sva">"bookmark_button_style"</span>: <span class="sst">"success"</span>, <span class="sco">// Button-Farbe</span>
-    <span class="sva">"daily_fatwa_enabled"</span>: <span class="skw">true</span>, <span class="sco">// Täglicher automatischer Post</span>
-    <span class="sva">"daily_fatwa_mode"</span>: <span class="sst">"latest"</span>,  <span class="sco">// "latest" (Neuestes) oder "random" (Zufall)</span>
-    <span class="sva">"daily_channel_id"</span>: <span class="snu">1234567890</span> <span class="sco">// Discord Kanal-ID</span>
+                    <h2>⚙️ Manuell in settings.json</h2>
+                    <p>Die Einstellungen werden in der Datei <code>settings.json</code> gespeichert und können auch direkt editiert werden:</p>
+                    <pre><button class="copy-btn" onclick="copyCode(this)">Kopieren</button><code>{
+    "embed_color": "0x0a58ca",
+    "search_limit": 3,
+    "bookmark_button_style": "success",
+    "daily_fatwa_enabled": true,
+    "daily_fatwa_mode": "latest",
+    "daily_channel_id": 123456789
 }</code></pre>
                 </div>
 
                 <!-- SEITE 4: LESEZEICHEN -->
                 <div class="doc-page" id="page-lesezeichen">
-                    <h1>🔖 Das Lesezeichen-System</h1>
-                    <p>Unter jedem geposteten Fatwa findest du einen Button namens <strong>Als Lesezeichen speichern</strong>. Wenn ein User darauf klickt, passiert Folgendes:</p>
-                    <ol>
-                        <li>Der Bot schickt dem User das komplette Urteil (inklusive Frage und Antwort) als private Direktnachricht (DM).</li>
-                        <li>So hat der User sein persönliches Lesezeichen dauerhaft in seinem Postfach und kann es jederzeit nachlesen.</li>
-                    </ol>
+                    <h1>Das Lesezeichen-System</h1>
+                    <p>Unter den Suchtreffern und Posts befindet sich ein Knopf mit der Aufschrift <strong>Als Lesezeichen speichern</strong>.</p>
+                    
+                    <h2>🌟 So funktioniert es</h2>
+                    <p>Klickt ein User auf diesen Knopf, sendet der Bot ihm die komplette Nachricht inklusive Frage und Antwort als private Direktnachricht (DM). So kann sich jeder User eine eigene Bibliothek nützlicher Rechtsurteile in seinen DMs anlegen.</p>
 
-                    <div class="info-box" style="background-color: rgba(231, 76, 60, 0.1); border-color: #e74c3c;">
-                        <h4>⚠️ Wichtiger Hinweis für deine Server-Mitglieder!</h4>
-                        <p>Damit der Bot Lesezeichen schicken kann, müssen User Direktnachrichten auf dem Server erlauben. Wenn der Bot eine Fehlermeldung schickt, hilft ein Rechtsklick auf das Server-Icon > Privatsphäre-Einstellungen > "Direktnachrichten von Servermitgliedern erlauben" aktivieren.</p>
+                    <div class="info-card" style="background: rgba(255, 69, 58, 0.06); border-color: rgba(255, 69, 58, 0.25);">
+                        <div class="info-card-icon" style="color: var(--accent-red);">⚠️</div>
+                        <div class="info-card-content">
+                            <h4>Häufige Fehlerquelle</h4>
+                            <p>Wenn User die Fehlermeldung erhalten, dass Nachrichten nicht zugestellt werden können, haben sie ihre Privatsphäre-Einstellungen gesperrt. Sie müssen DMs von Servermitgliedern in den Discord-Einstellungen erlauben.</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- SEITE 5: TROUBLESHOOTING -->
                 <div class="doc-page" id="page-troubleshooting">
-                    <h1>⚠️ Fehlersuche (Troubleshooting)</h1>
-                    <p>Hier sind Lösungen für die häufigsten Probleme, falls mal etwas nicht klappt.</p>
+                    <h1>Häufige Fragen & Fehlersuche</h1>
+                    <p>Falls einmal etwas nicht rund laufen sollte, findest du hier schnelle Lösungen.</p>
                     
-                    <h2>❌ Der Bot startet nicht / wirft Fehler</h2>
-                    <ul>
-                        <li><strong>Problem:</strong> Du hast deinen Token nicht richtig eingetragen.</li>
-                        <li><strong>Lösung:</strong> Prüfe die Datei <code>.env</code> im Hauptordner. Dort muss <code>BOT_TOKEN=deintokenhier</code> stehen. Achte darauf, dass keine Leerzeichen oder Anführungszeichen um den Token stehen.</li>
-                    </ul>
+                    <h2>⚠️ Der Bot startet nicht</h2>
+                    <p>Vergewissere dich, dass du deinen Bot-Token korrekt in die Datei <code>.env</code> eingetragen hast. Das Format sollte so aussehen:</p>
+                    <pre><button class="copy-btn" onclick="copyCode(this)">Kopieren</button><code>BOT_TOKEN=DeinDiscordBotTokenOhneAnfuehrungszeichen</code></pre>
 
-                    <h2>❌ Slash-Commands tauchen in Discord nicht auf</h2>
-                    <ul>
-                        <li><strong>Problem:</strong> Discord braucht manchmal ein paar Minuten, um neue Befehle anzuzeigen.</li>
-                        <li><strong>Lösung:</strong> Warte ca. 5 Minuten oder starte deinen Discord-Client (App) einmal komplett neu. Stelle sicher, dass der Bot in der Konsole meldet: <em>"Befehl(e) global synchronisiert!"</em>.</li>
-                    </ul>
+                    <h2>⚠️ Slash-Befehle werden nicht angezeigt</h2>
+                    <p>Wenn die Slash-Befehle (wie <code>/suche</code>) nicht in deinem Chat erscheinen, starte dein Discord-Programm neu. Der Bot registriert die Befehle global bei Discord – das kann nach dem ersten Start manchmal bis zu 5 Minuten dauern.</p>
 
-                    <h2>❌ Lesezeichen-Speichern schlägt fehl</h2>
-                    <ul>
-                        <li><strong>Problem:</strong> Der Empfänger hat seine DMs geschlossen.</li>
-                        <li><strong>Lösung:</strong> Der User muss DMs für Mitglieder dieses Servers erlauben (siehe Beschreibung unter "Lesezeichen").</li>
-                    </ul>
-
-                    <h2>❌ Der tägliche Fatwa-Post kommt nicht</h2>
-                    <ul>
-                        <li><strong>Problem:</strong> Entweder ist der tägliche Post in `/einstellungen` deaktiviert, die Kanal-ID ist falsch oder der Bot hat keine Berechtigung, in diesem Kanal Nachrichten zu schreiben.</li>
-                        <li><strong>Lösung:</strong> Prüfe in Discord, ob der Bot die Rolle "Nachrichten senden" und "Einbettungen hinzufügen" in dem eingestellten Kanal besitzt.</li>
-                    </ul>
+                    <h2>⚠️ Bot schreibt keine Nachrichten</h2>
+                    <p>Vergewissere dich, dass der Bot in den Kanaleinstellungen die Berechtigung besitzt, <strong>Nachrichten zu senden</strong> und <strong>Einbettungen (Links) hinzuzufügen</strong>.</p>
                 </div>
 
             </div>
@@ -610,63 +597,43 @@ python main.py</code></pre>
 
     </div>
 
-    <!-- 4. Status Bar -->
-    <div class="status-bar">
-        <div class="status-left">
-            <div class="status-item">
-                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: white;">
-                    <path d="M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22C17.53,22 22,17.53 22,12C22,6.47 17.53,2 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M13,7H11V13H17V11H13V7Z"/>
-                </svg>
-                <span>master</span>
-            </div>
-            <div class="status-item">
-                <span>0 ⓧ 0 ⚠</span>
-            </div>
-        </div>
-        <div class="status-right">
-            <span>Zeile 1, Spalte 1</span>
-            <span>Tab-Größe: 4</span>
-            <span>UTF-8</span>
-            <span>Markdown</span>
-        </div>
-    </div>
-
     <script>
-        // Funktion zum Wechseln der Dokumentationsseiten
-        function openFile(pageId) {
-            // Alle Inhaltsseiten ausblenden
+        // Funktion zum Wechseln der Seiten
+        function switchPage(pageId) {
+            // Alle Seiten ausblenden
             const pages = document.querySelectorAll('.doc-page');
             pages.forEach(page => page.classList.remove('active'));
 
-            // Alle Datei-Baum-Elemente deaktivieren
-            const fileItems = document.querySelectorAll('.file-item');
-            fileItems.forEach(item => item.classList.remove('active'));
+            // Alle Navigations-Items deaktivieren
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
 
-            // Alle Tabs deaktivieren
-            const tabs = document.querySelectorAll('.editor-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-
-            // Gewünschte Elemente aktivieren
-            const targetPage = document.getElementById('page-' + pageId);
-            if (targetPage) targetPage.classList.add('active');
-
-            const targetFile = document.getElementById('file-' + pageId);
-            if (targetFile) targetFile.classList.add('active');
-
-            const targetTab = document.getElementById('tab-' + pageId);
-            if (targetTab) targetTab.classList.add('active');
-
-            // Breadcrumb anpassen
-            const extension = pageId === 'troubleshooting' ? '.txt' : (pageId === 'befehle' ? '.json' : '.md');
-            document.getElementById('breadcrumb-filename').innerText = pageId + extension;
+            // Gewünschte Seite und Navigation aktivieren
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.getElementById('nav-' + pageId).classList.add('active');
         }
 
-        // Einfaches Suchfeld in der Sidebar filtern
-        function filterFiles() {
+        // Kopier-Hilfsfunktion für Codeblöcke
+        function copyCode(btn) {
+            const pre = btn.parentElement;
+            const code = pre.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Kopiert! ✓";
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Suchfilter für die Navigation
+        function filterNavigation() {
             const query = document.getElementById('searchBox').value.toLowerCase();
-            const fileItems = document.querySelectorAll('.file-item');
+            const navItems = document.querySelectorAll('.nav-item');
             
-            fileItems.forEach(item => {
+            navItems.forEach(item => {
                 const text = item.innerText.toLowerCase();
                 if (text.includes(query)) {
                     item.style.display = 'flex';
